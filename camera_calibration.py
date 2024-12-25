@@ -54,7 +54,7 @@ def camera_calibration():
             cv2.drawChessboardCorners(frame, CHESSBOARD_SIZE, corners, ret)
             N_IMAGES+=1
 
-        n_img_text = f"n°img: {N_IMAGES}"
+        n_img_text = f"num_of_imgs: {N_IMAGES}"
         cv2.putText(frame, n_img_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (65, 55, 255), 2, cv2.LINE_AA)
 
 
@@ -66,8 +66,7 @@ def camera_calibration():
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
         
-        key = cv2.waitKey(1)
-        if key == 0xFF or key == ord('q'):
+        if N_IMAGES >= 10:
             break
 
     if len(objpoints) > 0:
