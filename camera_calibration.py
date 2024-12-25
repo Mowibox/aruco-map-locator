@@ -17,12 +17,14 @@ from flask import Flask, Response
 CHESSBOARD_SIZE = (7, 10) # Number of inners corners (row, col)
 SQUARE_SIZE = 0.025       # In meters (25 mm)
 N_IMAGES = 0              # Counter for the number of chessboards detections
+FRAME_DELAY = 30          # Number of frames between detections
 
 objp = np.zeros((CHESSBOARD_SIZE[0]*CHESSBOARD_SIZE[1], 3), np.float32)
 objp[:, :2] = np.mgrid[0:CHESSBOARD_SIZE[0], 0:CHESSBOARD_SIZE[1]].T.reshape(-1,2)*SQUARE_SIZE
 
 objpoints = [] # 3D points
 imgpoints = [] # 2D points
+frame_counter = 0
 
 app = Flask(__name__)
 
@@ -63,17 +65,20 @@ def camera_calibration():
             frame = camera_thread.frame
             frame = cv2.flip(frame, 1)
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            ret, corners = cv2.findChessboardCorners(gray, CHESSBOARD_SIZE, None)
 
-            if ret:
-                objpoints.append(objp)
-                imgpoints.append(corners)
-                cv2.drawChessboardCorners(frame, CHESSBOARD_SIZE, corners, ret)
-                N_IMAGES+=1
+            if frame_counter % FRAME_DELAY == 0:
+                ret, corners = cv2.findChessboardCorners(gray, CHESSBOARD_SIZE, None)
 
-            n_img_text = f"num_of_imgs: {N_IMAGES}"
-            cv2.putText(frame, n_img_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (65, 55, 255), 2, cv2.LINE_AA)
+                if ret:
+                    objpoints.append(objp)
+                    imgpoints.append(corners)
+                    cv2.drawChessboardCorners(frame, CHESSBOARD_SIZE, corners, ret)
+                    N_IMAGES+=1
 
+                n_img_text = f"num_of_imgs: {N_IMAGES}"
+                cv2.putText(frame, n_img_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (65, 55, 255), 2, cv2.LINE_AA)
+
+            frame +=1
 
             ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 50])
             if not ret:
