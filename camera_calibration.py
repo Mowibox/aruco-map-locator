@@ -17,7 +17,7 @@ from flask import Flask, Response
 CHESSBOARD_SIZE = (7, 10) # Number of inners corners (row, col)
 SQUARE_SIZE = 0.025       # In meters (25 mm)
 N_IMAGES = 0              # Counter for the number of chessboards detections
-FRAME_DELAY = 30          # Number of frames between detections
+FRAME_DELAY = 100          # Number of frames between detections
 
 objp = np.zeros((CHESSBOARD_SIZE[0]*CHESSBOARD_SIZE[1], 3), np.float32)
 objp[:, :2] = np.mgrid[0:CHESSBOARD_SIZE[0], 0:CHESSBOARD_SIZE[1]].T.reshape(-1,2)*SQUARE_SIZE
@@ -99,7 +99,6 @@ def camera_calibration():
     camera.release()
     camera_thread.stop()
     camera_thread.join()
-    cv2.destroyAllWindows()
 
 @app.route('/')
 def video_feed():
