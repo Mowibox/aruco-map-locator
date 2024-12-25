@@ -75,7 +75,7 @@ def camera_calibration():
             cv2.putText(frame, n_img_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (65, 55, 255), 2, cv2.LINE_AA)
 
 
-            ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 95])
+            ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 50])
             if not ret:
                 continue
         
@@ -90,10 +90,7 @@ def camera_calibration():
         ret, camera_matrix, dist_coeffs, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
         print(f"Camera Matrix:\n{camera_matrix}")
         print(f"Distorsion coefficients:\n{dist_coeffs}")
-        
-    else:
-        print("No chessboard images have been captured for calibration.")
-        
+
     camera.release()
     camera_thread.stop()
     camera_thread.join()
