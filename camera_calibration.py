@@ -36,6 +36,9 @@ app = Flask(__name__)
 
 
 class CameraThread(threading.Thread):
+    """
+    Class to capture camera frames with multithreading
+    """
     def __init__(self, camera):
         threading.Thread.__init__(self)
         self.camera = camera
@@ -43,16 +46,25 @@ class CameraThread(threading.Thread):
         self.frame = None
 
     def run(self):
+        """
+        Captures the frames
+        """
         while self.running:
             ret, frame = self.camera.read()
             if ret:
                 self.frame = frame
 
     def stop(self):
+        """
+        Stops the camera thread
+        """
         self.running = False
 
 
 def parse_args():
+    """
+    Parses the command-line arguments
+    """
     parser = argparse.ArgumentParser(description="Camera calibration")
     parser.add_argument('--max_img', type=int, default=15, help='Number of images to capture before stopping calibration.')
     args = parser.parse_args()
