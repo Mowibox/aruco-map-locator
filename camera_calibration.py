@@ -8,7 +8,6 @@
 """
 
 # Imports
-import sys
 import cv2
 import yaml
 import time
@@ -21,6 +20,10 @@ CHESSBOARD_SIZE = (7, 10) # Number of inners corners (row, col)
 SQUARE_SIZE = 0.025       # In meters (25 mm)
 N_IMAGES = 0              # Counter for the number of chessboard detections
 TIME_DELAY = 3            # Minimal time between two detections
+
+# Frame dimensions
+FRAME_WIDTH = 604
+FRAME_HEIGHT = 480
 
 objp = np.zeros((CHESSBOARD_SIZE[0]*CHESSBOARD_SIZE[1], 3), np.float32)
 objp[:, :2] = np.mgrid[0:CHESSBOARD_SIZE[0], 0:CHESSBOARD_SIZE[1]].T.reshape(-1,2)*SQUARE_SIZE
@@ -82,8 +85,8 @@ def camera_calibration(MAX_IMAGES):
     global N_IMAGES, objpoints, imgpoints, last_detection_time
 
     camera = cv2.VideoCapture(0)
-    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
     if not camera.isOpened():
         return "Error, could not open camera."
     camera_thread = CameraThread(camera)
