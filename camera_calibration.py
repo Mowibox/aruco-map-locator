@@ -51,7 +51,7 @@ def camera_calibration():
     """
     Performs chessboard camera calibration
     """
-    global N_IMAGES, objpoints, imgpoints
+    global N_IMAGES, objpoints, imgpoints, last_detection_time
 
     camera = cv2.VideoCapture(0)
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
