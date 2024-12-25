@@ -7,52 +7,56 @@
     
 """
 
-# Includes
+# Imports
 import cv2
-import time
-import subprocess
+import yaml
+import numpy as np
 from flask import Flask, Response
+
+CHESSBOARD_SIZE = (7, 10) # Number of inners corners (row, col)
+SQUARE_SIZE = 0.025       # In meters (25 mm)
+N_IMAGES = 0              # Counter for the number of chessboards detections
+
+objp = np.zeros((CHESSBOARD_SIZE[0], CHESSBOARD_SIZE[1], 3), np.float32)
+objp[:, :2] = np.mgrid[0:CHESSBOARD_SIZE[0], 0:CHESSBOARD_SIZE[1]].T.reshape(-1,2)*SQUARE_SIZE
+
+objpoints = [] # 3D points
+imgpoints = [] # 2D points
 
 app = Flask(__name__)
 
-def get_cpu_temp() -> str:
+def camera_calibration():
     """
-    Returns the Raspberry Pi CPU temperature
+    Performs chessboard camera calibration
     """
-    temp_cmd = subprocess.run(['vcgencmd', 'measure_temp'], capture_output=True, text=True)
-    temp_str = temp_cmd.stdout
-    temp = temp_str.split('=')[1].split("'")[0]
-    return temp
+    global N_IMAGES, objpoints, imgpoints
 
-
-def generate_frames():
-    """
-    Generates the frames for the camera stream
-    """
     camera = cv2.VideoCapture(0)
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-
-    # Variables for FPS
-    prev_frame_time = 0
-    new_frame_time = 0
+    if not camera.isOpened():
+        return "Error, could not open camera."
 
     while True:
-        success, frame = camera.read()
+        ret, frame = camera.read()
 
         frame = cv2.flip(frame, 1)
-        if not success:
+        if not ret:
             break
         
-        new_frame_time = time.time()
-        fps = 1/(new_frame_time - prev_frame_time)
-        prev_frame_time = new_frame_time
-        fps_text = f"FPS: {int(fps)}"
-        cv2.putText(frame, fps_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (65, 55, 255), 2, cv2.LINE_AA)
-        
-        cpu_temp = get_cpu_temp()
-        cpu_temp_text = f"T = {cpu_temp}"
-        cv2.putText(frame, cpu_temp_text, (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (65, 55, 255), 2, cv2.LINE_AA)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        ret, corners = cv2.findChessboardCorners(gray, CHESSBOARD_SIZE, None)
+
+        if ret:
+            objpoints.append(objp)
+            imgpoints.append(corners)
+            cv2.drawChessboardCorners(frame, CHESSBOARD_SIZE, corners, ret)
+            N_IMAGES+=1
+
+        n_img_text = f"n°img: {N_IMAGES}"
+        cv2.putText(frame, n_img_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (65, 55, 255), 2, cv2.LINE_AA)
+
 
         ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 95])
         if not ret:
@@ -61,15 +65,28 @@ def generate_frames():
         frame = buffer.tobytes()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        
+        key = cv2.waitKey(1)
+        if key == 0xFF or key == ord('q'):
+            break
+
+    if len(objpoints) > 0:
+        ret, camera_matrix, dist_coeffs, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+        print(f"Camera Matrix:\n{camera_matrix}")
+        print(f"Distorsion coefficients:\n{dist_coeffs}")
+        
+    else:
+        print("No chessboard images have been captured for calibration.")
+    camera.release()
+    cv2.destroyAllWindows()
 
 @app.route('/')
 def video_feed():
-    return Response(generate_frames(),
+    return Response(camera_calibration(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
     try:
         app.run(host='0.0.0.0', port=5000, debug=True)
     except KeyboardInterrupt:
-        print("The server has been successfully shut down")
         exit(0)
