@@ -10,6 +10,7 @@
 # Imports
 import cv2
 import yaml
+import threading
 import numpy as np
 from flask import Flask, Response
 
@@ -25,6 +26,24 @@ imgpoints = [] # 2D points
 
 app = Flask(__name__)
 
+
+class CameraThread(threading.Thread):
+    def __init__(self, camera):
+        threading.Thread.__init__(self)
+        self.camera = camera
+        self.running = True
+        self.frame = None
+
+    def run(self):
+        while self.running:
+            ret, frame = self.camera.read()
+            if ret:
+                self.frame = frame
+
+    def stop(self):
+        self.running = False
+
+
 def camera_calibration():
     """
     Performs chessboard camera calibration
@@ -36,38 +55,36 @@ def camera_calibration():
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
     if not camera.isOpened():
         return "Error, could not open camera."
+    camera_thread = CameraThread(camera)
+    camera_thread.start()
 
     while True:
-        ret, frame = camera.read()
+        if camera_thread.frame is not None:
+            frame = camera_thread.frame
+            frame = cv2.flip(frame, 1)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            ret, corners = cv2.findChessboardCorners(gray, CHESSBOARD_SIZE, None)
 
-        frame = cv2.flip(frame, 1)
-        if not ret:
-            break
+            if ret:
+                objpoints.append(objp)
+                imgpoints.append(corners)
+                cv2.drawChessboardCorners(frame, CHESSBOARD_SIZE, corners, ret)
+                N_IMAGES+=1
+
+            n_img_text = f"num_of_imgs: {N_IMAGES}"
+            cv2.putText(frame, n_img_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (65, 55, 255), 2, cv2.LINE_AA)
+
+
+            ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 95])
+            if not ret:
+                continue
         
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-        ret, corners = cv2.findChessboardCorners(gray, CHESSBOARD_SIZE, None)
-
-        if ret:
-            objpoints.append(objp)
-            imgpoints.append(corners)
-            cv2.drawChessboardCorners(frame, CHESSBOARD_SIZE, corners, ret)
-            N_IMAGES+=1
-
-        n_img_text = f"num_of_imgs: {N_IMAGES}"
-        cv2.putText(frame, n_img_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (65, 55, 255), 2, cv2.LINE_AA)
-
-
-        ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 95])
-        if not ret:
-            continue
-        
-        frame = buffer.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        
-        if N_IMAGES >= 10:
-            break
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            
+            if N_IMAGES >= 10:
+                break
 
     if len(objpoints) > 0:
         ret, camera_matrix, dist_coeffs, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
@@ -76,7 +93,10 @@ def camera_calibration():
         
     else:
         print("No chessboard images have been captured for calibration.")
+        
     camera.release()
+    camera_thread.stop()
+    camera_thread.join()
     cv2.destroyAllWindows()
 
 @app.route('/')
