@@ -1,4 +1,4 @@
-FROM --platform=linux/arm64 ros:jazzy
+FROM --platform=linux/arm64 ros:jazzy-ros-base
 
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y \
