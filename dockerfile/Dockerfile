@@ -1,4 +1,4 @@
-FROM ros:jazzy
+FROM --platform=linux/arm64 ros:jazzy
 
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y \
@@ -20,7 +20,7 @@ RUN pip install setuptools==58.2.0
 
 RUN pip install transforms3d \
                 numpy \
-                opencv-python opencv-python-headless \
+                opencv-python-headless \
                 opencv-contrib-python \
                 flask \
                 pyzbar 
