@@ -84,7 +84,7 @@ def save_calibration(camera_matrix, dist_coeffs):
     }
     with open("cam_params.yaml", "w") as yaml_file:
         yaml.dump(calibration_data, yaml_file, default_flow_style=False)
-        print("Calibration data has been saved to 'cam_params.yaml'.")
+        print("Calibration data has been saved to 'cam_params.yaml'.\n")
 
 
 
@@ -139,8 +139,8 @@ def camera_calibration(MAX_IMAGES):
 
     if len(objpoints) > 0:
         ret, camera_matrix, dist_coeffs, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
-        print(f"Camera Matrix:\n{camera_matrix}")
-        print(f"Distorsion coefficients:\n{dist_coeffs}")
+        print(f"Camera Matrix:\n{camera_matrix}\n")
+        print(f"Distorsion coefficients:\n{dist_coeffs}\n")
 
         mean_error = 0
         for i in range(len(objpoints)):
@@ -148,7 +148,7 @@ def camera_calibration(MAX_IMAGES):
             error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2)/len(imgpoints2)
             mean_error += error
         
-        print(f"Re-projection error:\n{mean_error/len(objpoints)}")
+        print(f"Re-projection error:\n{mean_error/len(objpoints)}\n")
 
         save_calibration(camera_matrix, dist_coeffs)
         print("Press CTRL-C to close the terminal...")
