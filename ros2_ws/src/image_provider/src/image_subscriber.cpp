@@ -63,7 +63,7 @@ class ImageSubscriber : public rclcpp::Node {
             cv::Mat frame(msg->height, msg->width, CV_8UC3, const_cast<unsigned char*>(msg->data.data()), msg->step);
 
             cv::Mat corrected_frame;
-            cv::Mat new_camera_matrix = cv::getOptimalNewCameraMatrix(camera_matrix_, dist_coeffs_, frame.size(), 1);
+            cv::Mat new_camera_matrix = cv::getOptimalNewCameraMatrix(camera_matrix_, dist_coeffs_, frame.size(), 0);
             cv::undistort(frame, corrected_frame, camera_matrix_, dist_coeffs_, new_camera_matrix);
 
             cv::imshow(topic, corrected_frame);
