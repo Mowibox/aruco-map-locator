@@ -42,7 +42,7 @@ class ImageSubscriber : public rclcpp::Node {
     public:
     ImageSubscriber() : Node("image_subscriber") {
         this->declare_parameter<std::string>("topic", "camera_feed");
-        std::string topic = this->get_parameter("topic").as_string();
+        topic = this->get_parameter("topic").as_string();
 
         subscriber_ = this->create_subscription<sensor_msgs::msg::Image>(
             topic, 10, std::bind(&ImageSubscriber::image_callback, this, std::placeholders::_1));
