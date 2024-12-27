@@ -125,7 +125,7 @@ def camera_calibration(MAX_IMAGES):
             cv2.putText(frame, n_img_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (65, 55, 255), 2, cv2.LINE_AA)
 
 
-            ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 60])
+            ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 70])
             time.sleep(0.1)
             if not ret:
                 continue
@@ -143,6 +143,15 @@ def camera_calibration(MAX_IMAGES):
         print(f"Distorsion coefficients:\n{dist_coeffs}")
         save_calibration(camera_matrix, dist_coeffs)
         print("Press CTRL-C to close the terminal...")
+
+
+        mean_error = 0
+        for i in range(len(objpoints)):
+            imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], camera_matrix, dist_coeffs)
+            error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2)/len(imgpoints2)
+            mean_error += error
+        
+        print(f"Re-projection error: {mean_error/len(objpoints)}")
 
     camera.release()
     camera_thread.stop()
