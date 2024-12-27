@@ -141,9 +141,6 @@ def camera_calibration(MAX_IMAGES):
         ret, camera_matrix, dist_coeffs, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
         print(f"Camera Matrix:\n{camera_matrix}")
         print(f"Distorsion coefficients:\n{dist_coeffs}")
-        save_calibration(camera_matrix, dist_coeffs)
-        print("Press CTRL-C to close the terminal...")
-
 
         mean_error = 0
         for i in range(len(objpoints)):
@@ -151,7 +148,10 @@ def camera_calibration(MAX_IMAGES):
             error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2)/len(imgpoints2)
             mean_error += error
         
-        print(f"Re-projection error: {mean_error/len(objpoints)}")
+        print(f"Re-projection error:\n{mean_error/len(objpoints)}")
+
+        save_calibration(camera_matrix, dist_coeffs)
+        print("Press CTRL-C to close the terminal...")
 
     camera.release()
     camera_thread.stop()
