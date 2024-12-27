@@ -22,8 +22,8 @@ N_IMAGES = 0              # Counter for the number of chessboard detections
 TIME_DELAY = 3            # Minimal time between two detections
 
 # Frame dimensions
-FRAME_WIDTH = 960
-FRAME_HEIGHT = 720
+FRAME_WIDTH = 640
+FRAME_HEIGHT = 480
 
 objp = np.zeros((CHESSBOARD_SIZE[0]*CHESSBOARD_SIZE[1], 3), np.float32)
 objp[:, :2] = np.mgrid[0:CHESSBOARD_SIZE[0], 0:CHESSBOARD_SIZE[1]].T.reshape(-1,2)*SQUARE_SIZE
@@ -125,7 +125,7 @@ def camera_calibration(MAX_IMAGES):
             cv2.putText(frame, n_img_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (65, 55, 255), 2, cv2.LINE_AA)
 
 
-            ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 70])
+            ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 100])
             time.sleep(0.1)
             if not ret:
                 continue
