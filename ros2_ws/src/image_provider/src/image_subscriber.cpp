@@ -66,7 +66,7 @@ class ImageSubscriber : public rclcpp::Node {
             cv::Mat new_camera_matrix = cv::getOptimalNewCameraMatrix(camera_matrix_, dist_coeffs_, frame.size(), 1);
             cv::undistort(frame, corrected_frame, camera_matrix_, dist_coeffs_, new_camera_matrix);
 
-            cv::imshow("Video", corrected_frame);
+            cv::imshow(topic, corrected_frame);
             cv::waitKey(1);
         } catch (const std::exception &e) {
             RCLCPP_ERROR(this->get_logger(), "Error processing image: %s", e.what());
@@ -76,6 +76,7 @@ class ImageSubscriber : public rclcpp::Node {
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscriber_;
     cv::Mat camera_matrix_;
     cv::Mat dist_coeffs_;
+    std::string topic;
 
 };
 
