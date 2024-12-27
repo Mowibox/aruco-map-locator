@@ -22,8 +22,8 @@ N_IMAGES = 0              # Counter for the number of chessboard detections
 TIME_DELAY = 3            # Minimal time between two detections
 
 # Frame dimensions
-FRAME_WIDTH = 640
-FRAME_HEIGHT = 480
+FRAME_WIDTH = 960
+FRAME_HEIGHT = 720
 
 objp = np.zeros((CHESSBOARD_SIZE[0]*CHESSBOARD_SIZE[1], 3), np.float32)
 objp[:, :2] = np.mgrid[0:CHESSBOARD_SIZE[0], 0:CHESSBOARD_SIZE[1]].T.reshape(-1,2)*SQUARE_SIZE
