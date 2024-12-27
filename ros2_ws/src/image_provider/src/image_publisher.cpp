@@ -1,3 +1,5 @@
+#include <thread>
+#include <mutex>
 #include <rclcpp/rclcpp.hpp>
 #include <opencv2/opencv.hpp>
 #include <std_msgs/msg/header.hpp>
@@ -30,29 +32,53 @@ sensor_msgs::msg::Image::SharedPtr mat_to_image_msg(const cv::Mat &frame, const 
 class ImagePublisher : public rclcpp::Node{
     public:
     ImagePublisher(cv::VideoCapture &capture)
-        : Node("image_publisher"), capture_(capture) {
+        : Node("image_publisher"), capture_(capture), is_running_(true){
             publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_feed", 20);
             timer_ = this->create_wall_timer(std::chrono::duration<double>(0.2), std::bind(&ImagePublisher::publish_frame, this));
+            thread_ = std::thread(&ImagePublisher::capture_frames, this);
+    }
+
+    ~ImagePublisher() {
+        is_running_ = false;
+        thread_.join(); 
     }
 
     private:
-    void publish_frame(){
+    void capture_frames() {
        /** 
-        * Publishes the frames to the camera_feed topic
+        * Captures the frames with threading
         */
         cv::Mat frame;
-        if (!capture_.read(frame)) {
-            RCLCPP_WARN(this->get_logger(), "Failed to read camera feed.");
-            return;
+        while (is_running_){
+            if (!capture_.read(frame)) {
+                RCLCPP_WARN(this->get_logger(), "Failed to read camera feed.");
+                continue;
+            } 
+        
+            std::lock_guard<std::mutex> lock(frame_mutex_);
+            latest_frame_ = frame.clone();
+        }
+    }
+
+    void publish_frame(){
+       /** 
+        * Publishes the frames to the 'camera_feed' topic
+        */
+        std::lock_guard<std::mutex> lock(frame_mutex_);
+        if (!latest_frame_.empty()) {
+            auto msg = mat_to_image_msg(latest_frame_, this->get_clock());
+            publisher_->publish(*msg);   
         }
 
-        auto msg = mat_to_image_msg(frame, this->get_clock());
-        publisher_->publish(*msg);
     }
 
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr publisher_;
     rclcpp::TimerBase::SharedPtr timer_;
     cv::VideoCapture &capture_;
+    std::thread thread_;
+    std::mutex frame_mutex_;
+    cv::Mat latest_frame_;
+    bool is_running_;
 };
 
 
@@ -62,7 +88,7 @@ int main(int argc, char **argv){
     cv::VideoCapture capture(0);
     if (!capture.isOpened()){
         std::cerr << "Failed to open camera." << std::endl;
-        return EXIT_FAILURE;
+        return 0;
     }
 
     capture.set(cv::CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
@@ -72,5 +98,5 @@ int main(int argc, char **argv){
     rclcpp::spin(node);
 
     rclcpp::shutdown();
-    return EXIT_SUCCESS;
+    return 0;
 }
