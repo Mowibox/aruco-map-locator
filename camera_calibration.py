@@ -73,14 +73,14 @@ def parse_args():
 
 def save_calibration(camera_matrix, dist_coeffs):
     """
-    Saves the camera calibration parameters in a YAML file
+    Saves the camera calibration parameters in a yaml file
 
-    @param: camera_matrix: The camera matrix
-    @param: dist_coeffs: The distorsion coefficients
+    @param: camera_matrix: The intrinsic matrix
+    @param: dist_coeffs: The distortion coefficients
     """
     calibration_data = {
         'camera_matrix': camera_matrix.tolist(),
-        'distorsion_coefficients': dist_coeffs.tolist()
+        'distortion_coefficients': dist_coeffs.tolist()
     }
     with open("cam_params.yaml", "w") as yaml_file:
         yaml.dump(calibration_data, yaml_file, default_flow_style=False)
@@ -140,7 +140,7 @@ def camera_calibration(MAX_IMAGES):
     if len(objpoints) > 0:
         ret, camera_matrix, dist_coeffs, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
         print(f"Camera Matrix:\n{camera_matrix}\n")
-        print(f"Distorsion coefficients:\n{dist_coeffs}\n")
+        print(f"Distortion coefficients:\n{dist_coeffs}\n")
 
         mean_error = 0
         for i in range(len(objpoints)):

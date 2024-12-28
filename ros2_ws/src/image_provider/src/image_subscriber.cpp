@@ -9,7 +9,7 @@ bool load_calibration_params(const std::string &filepath, cv::Mat &camera_matrix
    /** 
     * Loads the camera calibration parameters specified in the provided yaml file
     *@param filepath: The yaml file path 
-    *@param camera_matrix: The camera matrix
+    *@param camera_matrix: The intrinsic matrix
     *@param dist_coeffs: The distortion coefficientss
     */
     try{
@@ -22,7 +22,7 @@ bool load_calibration_params(const std::string &filepath, cv::Mat &camera_matrix
             }
         }
 
-        auto dist_coeffs_data = config["distorsion_coefficients"].as<std::vector<std::vector<double>>>();
+        auto dist_coeffs_data = config["distortion_coefficients"].as<std::vector<std::vector<double>>>();
         dist_coeffs = cv::Mat(dist_coeffs_data.size(), dist_coeffs_data[0].size(), CV_64F);
         for (size_t i = 0; i < dist_coeffs_data.size(); ++i) {
             for (size_t j = 0; j < dist_coeffs_data[i].size(); ++j) {

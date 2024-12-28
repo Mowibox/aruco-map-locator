@@ -8,7 +8,7 @@ camera_matrix:
 - - 0.0
   - 0.0
   - 1.0
-distorsion_coefficients:
+distortion_coefficients:
 - - -0.43140658052022285
   - 0.26771551633707247
   - 0.0021486058215763786
