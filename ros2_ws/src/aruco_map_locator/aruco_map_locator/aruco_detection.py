@@ -159,7 +159,7 @@ def estimate_robot_pose(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs:
         rot_mtx, _ = cv2.Rodrigues(rvec[0])
         theta_z = np.arctan2(rot_mtx[1, 0], rot_mtx[0, 0])
 
-        print(f"Robot n°{marker_id} pose: {(x, y, theta_z)}")
+        print(f"Robot n°{marker_id} pose: x = {round(x/PX_RES,1)} cm; y = {round(y/PX_RES,1)} cm; theta = {round(theta_z,1)}°")
         robot_pose[marker_id] = (x, y, theta_z)
 
     return robot_pose
