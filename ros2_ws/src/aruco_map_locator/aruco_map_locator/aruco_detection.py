@@ -183,7 +183,7 @@ def pose_to_img(robot_pose: dict) -> np.ndarray:
 
         if 1 <= marker_id <= 5: # Blue team 
             color = (255, 50, 0)
-        elif 6 <= marker_id <= 6: # Yellow team
+        elif 6 <= marker_id <= 10: # Yellow team
             color = (0, 205, 255)
         else:
             continue
