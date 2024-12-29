@@ -1,7 +1,7 @@
 """
     @file        aruco_detection.py
     @author      Mowibox (Ousmane THIONGANE)
-    @brief       Code for detcting the aruco tags
+    @brief       Code for detcting the ArUco tags
     @version     1.0
     @date        2024-12-28
     
@@ -12,58 +12,11 @@ import cv2
 import numpy as np
 from .params import *
 import cv2.aruco as aruco
-import matplotlib.pyplot as plt 
 
-
-def load_img(path: str, size: tuple[int, int]=None) -> np.ndarray:
-    """
-    Loads an image and resizes it if specified
-
-    @param path: The image filepath
-    @param size: The size of the resized image (w, h)
-    """
-    img = cv2.imread(path)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    if size is not None:
-        img = cv2.resize(img, size) 
-    return img
-
-
-def display_img(img: np.ndarray, img2: np.ndarray = None, grid: bool = False) -> None:
-    """
-    Displays one or two images on a plot, optionally with a grid overlay
-
-    @param img: The first input image
-    @param img2: The second image (optional)
-    @param grid: Displays a grid if True
-    """
-    n_cols = 2 if img2 is not None else 1
-    
-    fig, axes = plt.subplots(1, n_cols, figsize=(6 * n_cols, 6))
-    if n_cols == 1:
-        axes = [axes]
-
-    def plot_image(ax, img, grid):
-        height, width = img.shape[:2]
-        if grid:
-            for x in range(width + 1):
-                ax.axvline(x - 0.5, linewidth=0.5)
-            for y in range(height + 1):
-                ax.axhline(y - 0.5, linewidth=0.5)
-        ax.imshow(img)
-
-    plot_image(axes[0], img, grid)
-
-    if img2 is not None:
-        plot_image(axes[1], img2, grid)
-
-    plt.tight_layout()
-    plt.show()
-    
 
 def detect_aruco(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: np.ndarray, display: bool=True) -> tuple: 
     """
-    Detects the aruco tags in the provided image
+    Detects the ArUco tags in the provided image
 
     @param img: The input image 
     @param camera_matrix: The intrinsic matrix
@@ -91,7 +44,7 @@ def detect_aruco(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: np.nda
 
 def compute_homography(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: np.ndarray, marker_positions: dict) -> tuple:
     """
-    Computes the homography matrix using the aruco tags
+    Computes the homography matrix using the ArUco tags
 
     @param img: The input image 
     @param camera_matrix: The intrinsic matrix
@@ -126,7 +79,7 @@ def compute_homography(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: 
 
 def estimate_robot_pose(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: np.ndarray, marker_positions: dict, hmtx: np.ndarray) -> tuple:
     """
-    Estimates the robot pose based on aruco tag
+    Estimates the robot pose based on ArUco tags
 
     @param img: The input image 
     @param camera_matrix: The intrinsic matrix

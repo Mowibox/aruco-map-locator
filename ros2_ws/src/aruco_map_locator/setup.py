@@ -15,14 +15,13 @@ setup(
         'setuptools',
         'numpy',
         'pyyaml',
-        'matplotlib',
         'opencv-python',
         'opencv-contrib-python'
         ],
     zip_safe=True,
     maintainer='mowibox',
     maintainer_email='ousmane.thiongane@ensea.fr',
-    description='Aruco image processing and map generation',
+    description='ArUco image processing and map generation',
     license='MIT',
     entry_points={
         'console_scripts': [
