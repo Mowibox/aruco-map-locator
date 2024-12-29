@@ -11,15 +11,22 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
-    install_requires=['setuptools'],
+    install_requires=[
+        'setuptools',
+        'numpy',
+        'pyyaml',
+        'matplotlib',
+        'opencv-python',
+        'opencv-contrib-python'
+        ],
     zip_safe=True,
     maintainer='mowibox',
     maintainer_email='ousmane.thiongane@ensea.fr',
     description='Aruco image processing and map generation',
     license='MIT',
-    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'aruco_processing = aruco_map_locator.aruco_processing:main', 
         ],
     },
 )

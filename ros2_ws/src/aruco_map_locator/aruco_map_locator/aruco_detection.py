@@ -9,24 +9,10 @@
 
 # Imports
 import cv2
-import yaml
 import numpy as np
-from params import *
+from .params import *
 import cv2.aruco as aruco
 import matplotlib.pyplot as plt 
-
-def load_calibration_params(filepath: str) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Loads the camera calibration parameters specified in the provided yaml file
-    @param filepath: The yaml file path 
-    """
-    with open(filepath, 'r') as file:
-        data = yaml.safe_load(file)
-
-    camera_matrix = np.array(data['camera_matrix'])
-    dist_coeffs = np.array(data['distortion_coefficients'][0])
-
-    return camera_matrix, dist_coeffs
 
 
 def load_img(path: str, size: tuple[int, int]=None) -> np.ndarray:
@@ -92,7 +78,7 @@ def detect_aruco(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: np.nda
     
     img = img.copy()
     
-    if np.all(ids) and display:
+    if ids is not None and display:
         marked_img = aruco.drawDetectedMarkers(img, corners, ids, borderColor=(255 ,0, 255))
         for i in range(len(ids)):
             rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners[i], MARKER_SIZE, camera_matrix, dist_coeffs)
@@ -116,6 +102,9 @@ def compute_homography(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: 
     real_points = []
 
     img, corners, ids =  detect_aruco(img, camera_matrix, dist_coeffs, display=False)
+
+    if ids is None:
+        return img, None
 
     for i, marker_id in enumerate(ids.flatten()):
         if marker_id in marker_positions:
@@ -149,14 +138,16 @@ def estimate_robot_pose(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs:
 
     robot_pose = {}
 
-    if np.all(ids):
+    if ids is None:
+        return robot_pose
+    
+    if len(ids) < 4:
         return robot_pose
     
     for i, marker_id in enumerate(ids.flatten()):
-        if marker_id in marker_positions: # Don't process the tags used for mapping
+        if marker_id in marker_positions or hmtx is None: # Don't process the tags used for mapping
             continue
         
-
         marker_corners = corners[i]
         rvec, tvec, _ = aruco.estimatePoseSingleMarkers(marker_corners, MARKER_SIZE, camera_matrix, dist_coeffs)
 
@@ -166,30 +157,34 @@ def estimate_robot_pose(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs:
 
         # Getting orientation with angle-axis method
         rot_mtx, _ = cv2.Rodrigues(rvec[0])
-        euler_angles = cv2.decomposeProjectionMatrix(np.hstack((rot_mtx, tvec[0].reshape(-1, 1))))[6]
-        theta_z = euler_angles[2]
+        theta_z = np.arctan2(rot_mtx[1, 0], rot_mtx[0, 0])
 
+        print(f"Robot n°{marker_id} pose: {(x, y, theta_z)}")
         robot_pose[marker_id] = (x, y, theta_z)
 
     return robot_pose
 
 
-def pose_to_img(robots_pose: dict) -> np.ndarray:
+def pose_to_img(robot_pose: dict) -> np.ndarray:
     """
     Displays the robot pose into an image
 
-    @robots_pose: The dictionnary of robot poses
+    @robot_pose: The dictionnary of robot poses
     """
     world_dim = np.multiply(WORLD_SIZE, PX_RES)
     matrix = np.zeros((world_dim[1], world_dim[0], 3), dtype=np.uint8) # RGB format
 
-    for marker_id, (x, y, theta_z) in robots_pose.items():
-        px, py = int(x), int(y)
+    if len(robot_pose) == 0:
+        return matrix
 
-        if 1 <= marker_id <= 5:
-            color = (0, 50, 255)
-        elif 6 <= marker_id <= 6:
-            color = (255, 205, 0)
+    for marker_id, (x, y, theta_z) in robot_pose.items():
+        px, py = int(x), int(y)
+        py = world_dim[1] - py # Putting the origin axis to the bottom left
+
+        if 1 <= marker_id <= 5: # Blue team 
+            color = (255, 50, 0)
+        elif 6 <= marker_id <= 6: # Yellow team
+            color = (0, 205, 255)
         else:
             continue
         neg_color = (255-color[0], 255-color[1], 255-color[2])
@@ -204,3 +199,8 @@ def pose_to_img(robots_pose: dict) -> np.ndarray:
         cv2.line(matrix, (px, py), (endx, endy), neg_color, 10)
 
     return matrix
+
+
+
+
+

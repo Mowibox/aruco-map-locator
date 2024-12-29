@@ -20,7 +20,9 @@ add_executable(image_publisher src/image_publisher.cpp)
 add_executable(image_subscriber src/image_subscriber.cpp)
 
 ament_target_dependencies(image_publisher rclcpp sensor_msgs OpenCV std_msgs)
-ament_target_dependencies(image_subscriber rclcpp sensor_msgs OpenCV)
+ament_target_dependencies(image_subscriber rclcpp sensor_msgs OpenCV yaml-cpp)
+
+target_link_libraries(image_subscriber ${YAML_CPP_LIBRARIES})
 
 install(TARGETS image_subscriber DESTINATION lib/${PROJECT_NAME})
 install(TARGETS image_publisher DESTINATION lib/${PROJECT_NAME})

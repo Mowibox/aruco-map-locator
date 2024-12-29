@@ -63,8 +63,16 @@ class ImageSubscriber : public rclcpp::Node {
             cv::Mat frame(msg->height, msg->width, CV_8UC3, const_cast<unsigned char*>(msg->data.data()), msg->step);
 
             cv::Mat corrected_frame;
-            cv::Mat new_camera_matrix = cv::getOptimalNewCameraMatrix(camera_matrix_, dist_coeffs_, frame.size(), 0);
-            cv::undistort(frame, corrected_frame, camera_matrix_, dist_coeffs_, new_camera_matrix);
+
+            if (topic != "robot_pose_in_map"){
+                cv::Mat new_camera_matrix = cv::getOptimalNewCameraMatrix(camera_matrix_, dist_coeffs_, frame.size(), 0);
+                cv::undistort(frame, corrected_frame, camera_matrix_, dist_coeffs_, new_camera_matrix);
+            }
+
+            else {
+                corrected_frame = frame.clone();
+            }
+            
 
             cv::imshow(topic, corrected_frame);
             cv::waitKey(1);
