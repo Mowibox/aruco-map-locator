@@ -11,16 +11,22 @@ import os
 import cv2 
 import random
 import numpy as np
+import pandas as pd
 import cv2.aruco as aruco
 
 MARKER_ID_LIST = [20, 21, 22, 23]
 
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
 aruco_params = aruco.DetectorParameters()
-counter = 0
 
 os.makedirs('dataset/img', exist_ok=True)
-os.makedirs('dataset/labels', exist_ok=True)
+
+filepath = 'dataset/dataset.csv'
+if not os.path.exists(filepath):
+    columns = ['filename']
+    for marker_id in MARKER_ID_LIST:
+        columns.extend([f'x{marker_id}',f'y{marker_id}'])
+    pd.DataFrame(columns=columns).to_csv(filepath, index=False)
 
 cap = cv2.VideoCapture(0)
 
@@ -55,39 +61,54 @@ def create_occlusion(frame: np.ndarray, corners: np.ndarray, ids: np.ndarray) ->
     return frame
 
 
-while True:
-    ret, frame = cap.read()
-    
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+def main():
+    counter = 0
 
-    corners, ids, _ = aruco.detectMarkers(
-        gray, aruco_dict, parameters=aruco_params)
-    
-    if ids is not None:
-        ids = ids.flatten()
-
-        if all(marker_id in ids for marker_id in MARKER_ID_LIST):
-            marker_coords = {}
-            
-            for marker_id in MARKER_ID_LIST:
-                idx = np.where(ids == marker_id)[0][0]
-                marker_coords[marker_id] = corners[idx][0].tolist()
+    while True:
+        ret, frame = cap.read()
         
-            filename = os.path.join('dataset/img', f"img_{counter}.png")
-            cv2.imwrite(filename, create_occlusion(frame, corners, ids))
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-            label_filename = os.path.join('dataset/labels', f"coords_{counter}.txt")
-            with open(label_filename, "w") as label_file:
-                for marker_id, coords in marker_coords.items():
-                    label_file.write(f"ID {marker_id}: {coords}\n") 
+        corners, ids, _ = aruco.detectMarkers(
+            gray, aruco_dict, parameters=aruco_params)
+        
+        if ids is not None:
+            ids = ids.flatten()
+
+            ids = np.sort(ids)
+            
+
+            if all(marker_id in ids for marker_id in MARKER_ID_LIST):
+                marker_coords = {}
+                
+                for marker_id, corner_coords in zip(ids, corners):
+                    corner_coords = np.array(corner_coords[0])
+                    x = np.mean(corner_coords[:, 0])
+                    y = np.mean(corner_coords[:, 1])
+                    marker_coords[marker_id] = (x, y)
+
+                data_row = {'filename': f'img_{counter}.png'}
+                for marker_id in MARKER_ID_LIST:
+                    if marker_id in marker_coords:
+                        x,y = marker_coords[marker_id]
+                        data_row[f'x{marker_id}'] = x
+                        data_row[f'y{marker_id}'] = y
+
+                pd.DataFrame([data_row]).to_csv(filepath, mode='a', header=False, index=False)
+            
+                filename = os.path.join('dataset/img', f"img_{counter}.png")
+                cv2.imwrite(filename, create_occlusion(frame, corners, ids))
 
                 print(f"{counter} images captured and saved")
                 counter+=1
-        
-    cv2.imshow("Dataset generation", frame)
+            
+        cv2.imshow("Dataset generation", frame)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-cap.release()
-cv2.destroyAllWindows()
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()
