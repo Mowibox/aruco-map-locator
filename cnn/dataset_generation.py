@@ -35,7 +35,7 @@ def create_occlusion(frame: np.ndarray, corners: np.ndarray, ids: np.ndarray) ->
     Creates occlusions on detected ArUco tags
 
     @param frame: The input image
-    @param corners: The corners of the detected aruco tags 
+    @param corners: The corners of the detected ArUco tags 
     @param ids: The IDs of the detected ArUco tags
     """
     for i, corner_coord in enumerate(corners):
@@ -47,8 +47,8 @@ def create_occlusion(frame: np.ndarray, corners: np.ndarray, ids: np.ndarray) ->
                 marker_w = xmax - xmin
                 marker_h = ymax - ymin
 
-                occlusion_w = random.uniform(0.1, 1.5)*marker_w
-                occlusion_h = random.uniform(0.1, 1.5)*marker_h
+                occlusion_w = random.uniform(0.1, 1.2)*marker_w
+                occlusion_h = random.uniform(0.1, 1.2)*marker_h
 
                 xmin, ymin = int(random.uniform(xmin, xmax-occlusion_w)), int(random.uniform(ymin, ymax-occlusion_h))
                 xmax, ymax = int(xmin + occlusion_w), int(ymin + occlusion_h)
@@ -75,9 +75,10 @@ def main():
         if ids is not None:
             ids = ids.flatten()
 
-            ids = np.sort(ids)
+            sort_idx = np.argsort(ids)
+            ids = ids[sort_idx]
+            corners = np.array(corners)[sort_idx]
             
-
             if all(marker_id in ids for marker_id in MARKER_ID_LIST):
                 marker_coords = {}
                 
