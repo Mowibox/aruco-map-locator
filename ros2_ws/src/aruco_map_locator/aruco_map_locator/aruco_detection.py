@@ -74,6 +74,7 @@ def compute_homography(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: 
     hmtx, _ = cv2.findHomography(pixel_points, real_points)
     output_size = np.multiply(WORLD_SIZE, PX_RES)
     warped_image = cv2.warpPerspective(img, hmtx, output_size)
+    warped_image = cv2.flip(warped_image, 0)
     return warped_image, hmtx
 
 

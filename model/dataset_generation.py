@@ -3,7 +3,7 @@
     @author      Mowibox (Ousmane THIONGANE)
     @brief       Code generate dataset for the CNN model
     @version     1.0
-    @date        2024-12-29
+    @date        2024-12-29q
     
 """
 
@@ -47,8 +47,8 @@ def create_occlusion(frame: np.ndarray, corners: np.ndarray, ids: np.ndarray) ->
                 marker_w = xmax - xmin
                 marker_h = ymax - ymin
 
-                occlusion_w = random.uniform(0.1, 1.2)*marker_w
-                occlusion_h = random.uniform(0.1, 1.2)*marker_h
+                occlusion_w = random.uniform(0.1, 1.5)*marker_w
+                occlusion_h = random.uniform(0.1, 1.5)*marker_h
 
                 xmin, ymin = int(random.uniform(xmin, xmax-occlusion_w)), int(random.uniform(ymin, ymax-occlusion_h))
                 xmax, ymax = int(xmin + occlusion_w), int(ymin + occlusion_h)
