@@ -40,7 +40,7 @@ def create_occlusion(frame: np.ndarray, corners: np.ndarray, ids: np.ndarray) ->
     """
     for i, corner_coord in enumerate(corners):
         if ids[i] in MARKER_ID_LIST:
-            if random.random() > 0.3:
+            if random.random() > 0.25:
                 xmin, ymin = np.min(corner_coord[0], axis=0).astype(int)
                 xmax, ymax = np.max(corner_coord[0], axis=0).astype(int)
                 
