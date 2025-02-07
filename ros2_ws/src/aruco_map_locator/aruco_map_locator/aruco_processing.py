@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from .aruco_detection import *
 from sensor_msgs.msg import Image
+from pose2d_msgs.msg import Pose2D
 
 class ArucoProcessing(Node):
 
@@ -13,6 +14,10 @@ class ArucoProcessing(Node):
 
         self.aruco_frame_publisher = self.create_publisher(
             Image, 'aruco_frame', 20
+        )
+
+        self.robot_pose_publisher = self.create_publisher(
+            Pose2D, 'robot_pose', 20
         )
 
         self.robot_pose_in_map_publisher = self.create_publisher(
@@ -31,14 +36,25 @@ class ArucoProcessing(Node):
             aruco_msg = self.mat_to_image_msg(aruco_frame, msg.header)
             self.aruco_frame_publisher.publish(aruco_msg)
 
-            if ids is not None and all(x in ids.flatten() for x in MARKER_POSITIONS):
+            if self.hmtx is None and ids is not None and all(x in ids.flatten() for x in MARKER_POSITIONS):
                 self.hmtx = compute_homography(frame, camera_matrix, dist_coeffs, MARKER_POSITIONS)
 
             if self.hmtx is not None:
                 robot_pose = estimate_robot_pose(frame, camera_matrix, dist_coeffs, MARKER_POSITIONS, self.hmtx)
+
+                for marker_id, (x, y, theta_z) in robot_pose.items():
+                    pose_msg = Pose2D()
+                    pose_msg.marker_id = int(marker_id)
+
+                    pose_msg.x = float(x/PX_RES)
+                    pose_msg.y = float(y/PX_RES)
+                    pose_msg.theta = float(theta_z)
+
+                    self.robot_pose_publisher.publish(pose_msg)
+
                 pose_frame = pose_to_img(robot_pose)
-                pose_msg = self.mat_to_image_msg(pose_frame, msg.header)
-                self.robot_pose_in_map_publisher.publish(pose_msg)
+                pose_in_map_msg = self.mat_to_image_msg(pose_frame, msg.header)
+                self.robot_pose_in_map_publisher.publish(pose_in_map_msg)
             
         except Exception as e:
             self.get_logger().error(f"Error during image processing: {e}")
