@@ -1,7 +1,7 @@
 """
     @file        aruco_detection.py
     @author      Mowibox (Ousmane THIONGANE)
-    @brief       Code for detcting the ArUco tags
+    @brief       Code for detecting the ArUco tags
     @version     1.0
     @date        2024-12-28
     
@@ -57,7 +57,7 @@ def compute_homography(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: 
     img, corners, ids =  detect_aruco(img, camera_matrix, dist_coeffs, display=False)
 
     if ids is None:
-        return img, None
+        return None
 
     for i, marker_id in enumerate(ids.flatten()):
         if marker_id in marker_positions:
@@ -66,16 +66,13 @@ def compute_homography(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: 
             real_points.append(np.multiply(marker_positions[marker_id], PX_RES))
 
     if len(pixel_points) < 4:
-        return img, None
+        return None
     
     pixel_points = np.array(pixel_points)
     real_points = np.array(real_points)
 
     hmtx, _ = cv2.findHomography(pixel_points, real_points)
-    output_size = np.multiply(WORLD_SIZE, PX_RES)
-    warped_image = cv2.warpPerspective(img, hmtx, output_size)
-    warped_image = cv2.flip(warped_image, 0)
-    return warped_image, hmtx
+    return hmtx
 
 
 def estimate_robot_pose(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: np.ndarray, marker_positions: dict, hmtx: np.ndarray) -> tuple:
@@ -112,6 +109,7 @@ def estimate_robot_pose(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs:
         # Getting orientation with angle-axis method
         rot_mtx, _ = cv2.Rodrigues(rvec[0])
         theta_z = np.arctan2(rot_mtx[1, 0], rot_mtx[0, 0])
+        theta_z = np.rad2deg(theta_z)
 
         print(f"Robot n°{marker_id} pose: x = {round(x/PX_RES,1)} cm; y = {round(y/PX_RES,1)} cm; theta = {round(theta_z,1)}°")
         robot_pose[marker_id] = (x, y, theta_z)
@@ -144,17 +142,12 @@ def pose_to_img(robot_pose: dict) -> np.ndarray:
         neg_color = (255-color[0], 255-color[1], 255-color[2])
 
         # Robot position
-        cv2.circle(matrix, (px, py), ROBOT_RADIUS*PX_RES, color, -1)
+        cv2.circle(matrix, (px, py), int(ROBOT_RADIUS*M_TO_CM*PX_RES), color, -1)
 
         # Robot orientation
         theta_z = theta_z.item()
-        endx = int(px + PX_RES*ROBOT_RADIUS*np.cos(theta_z))
-        endy = int(py + PX_RES*ROBOT_RADIUS*np.sin(theta_z))
+        endx = int(px + PX_RES*ROBOT_RADIUS*M_TO_CM*np.cos(theta_z))
+        endy = int(py + PX_RES*ROBOT_RADIUS*M_TO_CM*np.sin(theta_z))
         cv2.line(matrix, (px, py), (endx, endy), neg_color, 10)
 
     return matrix
-
-
-
-
-
