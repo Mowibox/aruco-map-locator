@@ -4,18 +4,15 @@ using RosPose2D = RosMessageTypes.Pose2d.Pose2DMsg;
 
 public class YellowRobot : MonoBehaviour
 {
-    public int robotID = 1;
+    public int robotID = 6;
     public GameObject robotCube;
 
-    void Start()
-    {
+    void Start(){
         ROSConnection.GetOrCreateInstance().Subscribe<RosPose2D>("robot_pose", PoseCallback);
     }
 
-    void PoseCallback(RosPose2D msg)
-    {
-        if (msg.marker_id == robotID)
-        {
+    void PoseCallback(RosPose2D msg){
+        if (msg.marker_id == robotID){
             float posX = msg.x;
             float posY = msg.y;
             float theta = msg.theta;
@@ -24,8 +21,7 @@ public class YellowRobot : MonoBehaviour
             robotCube.transform.rotation = Quaternion.Euler(0, theta*Mathf.Rad2Deg, 0);
         }
     }
-    void OnApplicationQuit()
-    {
+    void OnApplicationQuit(){
         ROSConnection.GetOrCreateInstance().Unsubscribe("robot_pose");
     }
 }

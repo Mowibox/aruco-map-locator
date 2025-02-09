@@ -465,7 +465,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0927a2f72b7961f30b710e288ed8149d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  robotID: 1
+  robotID: 6
   robotCube: {fileID: 769218392}
 --- !u!54 &769218394
 Rigidbody:
@@ -1072,7 +1072,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adc3cc38b7bb2bf13a6fd3092a3542ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  robotID: 6
+  robotID: 1
   robotCube: {fileID: 1867850435}
 --- !u!1 &1901224195
 GameObject:

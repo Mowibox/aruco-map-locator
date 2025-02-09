@@ -92,9 +92,6 @@ def estimate_robot_pose(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs:
     if ids is None:
         return robot_pose
     
-    if len(ids) < 4:
-        return robot_pose
-    
     for i, marker_id in enumerate(ids.flatten()):
         if marker_id in marker_positions or hmtx is None: # Don't process the tags used for mapping
             continue
