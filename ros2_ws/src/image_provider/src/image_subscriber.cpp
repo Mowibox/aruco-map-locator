@@ -1,9 +1,11 @@
 #include <yaml-cpp/yaml.h>
 #include <rclcpp/rclcpp.hpp>
-#include <sensor_msgs/msg/image.hpp>
 #include <opencv2/opencv.hpp>
+#include <sensor_msgs/msg/image.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
-const std::string CALIBRATION_FILE = "../cam_params.yaml";
+const std::string package_share_dir = ament_index_cpp::get_package_share_directory("image_provider");
+const std::string CALIBRATION_FILE = package_share_dir + "/config/cam_params.yaml";
 
 bool load_calibration_params(const std::string &filepath, cv::Mat &camera_matrix, cv::Mat &dist_coeffs){
    /** 

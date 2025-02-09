@@ -8,6 +8,7 @@
 """
 
 # Imports
+import os
 import cv2
 import yaml
 import time
@@ -78,13 +79,19 @@ def save_calibration(camera_matrix, dist_coeffs):
     @param: camera_matrix: The intrinsic matrix
     @param: dist_coeffs: The distortion coefficients
     """
+    repo_root = os.path.dirname(os.path.abspath(__file__))
+    config_dir = os.path.join(repo_root, "ros2_ws", "src", "image_provider", "config")
+    os.makedirs(config_dir, exist_ok=True)
+
+    yaml_path = os.path.join(config_dir, "cam_params.yaml")
+
     calibration_data = {
         'camera_matrix': camera_matrix.tolist(),
         'distortion_coefficients': dist_coeffs.tolist()
     }
-    with open("cam_params.yaml", "w") as yaml_file:
+    with open(yaml_path, "w") as yaml_file:
         yaml.dump(calibration_data, yaml_file, default_flow_style=False)
-        print("Calibration data has been saved to 'cam_params.yaml'.\n")
+        print(f"Calibration data has been saved to {yaml_path}.\n")
 
 
 

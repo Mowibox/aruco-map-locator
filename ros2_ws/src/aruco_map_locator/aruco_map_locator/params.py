@@ -7,10 +7,13 @@
     
 """
 # Imports
+import os
 import yaml
 import numpy as np
+from ament_index_python.packages import get_package_share_directory
 
-CALIBRATION_FILE = "../cam_params.yaml"
+package_share_dir = get_package_share_directory('image_provider')
+CALIBRATION_FILE = os.path.join(package_share_dir, 'config', 'cam_params.yaml')
 
 ROBOT_RADIUS = 0.01      # The robot radius (in m)
 ROBOT_HEIGHT = 0.035    # The robot height (in m)
