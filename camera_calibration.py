@@ -79,8 +79,8 @@ def save_calibration(camera_matrix, dist_coeffs):
     @param: camera_matrix: The intrinsic matrix
     @param: dist_coeffs: The distortion coefficients
     """
-    repo_root = os.path.dirname(os.path.abspath(__file__))
-    config_dir = os.path.join(repo_root, "ros2_ws", "src", "image_provider", "config")
+    root = os.path.dirname(os.path.abspath(__file__))
+    config_dir = os.path.join(root, "ros2_ws", "src", "image_provider", "config")
     os.makedirs(config_dir, exist_ok=True)
 
     yaml_path = os.path.join(config_dir, "cam_params.yaml")
