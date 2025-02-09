@@ -16,12 +16,12 @@ package_share_dir = get_package_share_directory('image_provider')
 CALIBRATION_FILE = os.path.join(package_share_dir, 'config', 'cam_params.yaml')
 
 ROBOT_RADIUS = 0.01      # The robot radius (in m)
-ROBOT_HEIGHT = 0.035    # The robot height (in m)
+ROBOT_HEIGHT = 0.035     # The robot height (in m)
 
-MARKER_SIZE = 0.02    # In meters (2 cm)
-M_TO_CM = 100         # Meters to centimeters conversion
-WORLD_SIZE = [30, 20] # World dimensions (w, h) 
-PX_RES = 20           # 1 cm is 1*PX_RES pixels
+MARKER_SIZE = 0.02       # In meters (2 cm)
+M_TO_CM = 100            # Meters to centimeters conversion
+WORLD_SIZE = [30, 20]    # World dimensions (w, h) 
+PX_RES = 20              # 1 cm is 1*PX_RES pixels
 
 # Aruco real-world coordinates ID:[x, y] (in cm)
 MARKER_POSITIONS = {
