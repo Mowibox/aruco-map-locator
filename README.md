@@ -12,7 +12,5 @@ Precise localization of its environment and dynamic obstacle detection are cruci
 
 * [1] Eric Marchand, Hideaki Uchiyama, Fabien Spindler. Pose Estimation for Augmented Reality: A Hands-On Survey. IEEE Transactions on Visualization and Computer Graphics, 2016, 22 (12), pp.2633 - 2651. ⟨10.1109/TVCG.2015.2513408⟩. ⟨hal-01246370⟩
 
-* [2] E. A. Voznesenskii and A. S. Kostin, "Optical Determination of the Position and Orientation of Various Objects in Three-Dimensional Space," 2024 Wave Electronics and its Application in Information and Telecommunication Systems (WECONF), St. Petersburg, Russian Federation, 2024, pp. 1-4, doi: 10.1109/WECONF61770.2024.10564649. 
-
 
 
