@@ -106,6 +106,7 @@ def camera_calibration(MAX_IMAGES):
     camera = cv2.VideoCapture(0)
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
+    camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
     if not camera.isOpened():
         return "Error, could not open camera."
     camera_thread = CameraThread(camera)
