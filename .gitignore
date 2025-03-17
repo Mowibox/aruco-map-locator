@@ -203,6 +203,8 @@ AMENT_IGNORE
 # Dataset file
 dataset/
 
+**/.vscode
+
 **/[Ll]ibrary/
 **/[Tt]emp/
 **/[Oo]bj/
