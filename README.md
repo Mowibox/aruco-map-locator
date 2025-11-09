@@ -8,7 +8,9 @@ This repo contains the ROS 2 code for locating and estimating a robot position o
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-33cc55?logo=opencv)
 ![Issues](https://img.shields.io/github/issues/Mowibox/aruco-map-locator)
 
-![aruco_map_locator](https://github.com/user-attachments/assets/a4c17f62-d4c8-48ce-b297-6aa309cdb48d)
+<p align="center">
+  <img alt="aruco_map_locator" src="https://github.com/user-attachments/assets/a4c17f62-d4c8-48ce-b297-6aa309cdb48d"/>
+</p>
 
 ## Table of contents
 
