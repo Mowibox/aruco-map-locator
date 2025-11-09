@@ -25,7 +25,7 @@ This repo contains the ROS 2 code for locating and estimating a robot position o
 
 ## Project overview
 
-Precise localization of its environment and dynamic obstacle detection are crucial challenges in autonomous mobile robotics. These issues can be explored in competitions such as the French Robotics Cup. In this repository, I propose an approach to robot localization based on fiducial markers (ArUco tags) [[1]](#references). The aim is to determine the precise position of a robot in the game space, as well as to estimate the position of obstacles in real time (game elements and opposing robots).
+Precise localization of its environment and dynamic obstacle detection are crucial challenges in autonomous mobile robotics. These issues can be explored in competitions such as the French Robotics Cup. In this repository, I propose an approach to robot localization based on fiducial markers (ArUco tags). The aim is to determine the precise position of a robot in the game space, as well as to estimate the position of obstacles in real time (game elements and opposing robots). [[1]](#references)
 
 ## Authors
 
