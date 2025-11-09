@@ -44,7 +44,7 @@ Contributions are always welcome!
 
 ## References
 
-* [1] Eric Marchand, Hideaki Uchiyama, Fabien Spindler. Pose Estimation for Augmented Reality: A Hands-On Survey. IEEE Transactions on Visualization and Computer Graphics, 2016, 22 (12), pp.2633 - 2651. ⟨10.1109/TVCG.2015.2513408⟩. ⟨hal-01246370⟩
+> * [1] Eric Marchand, Hideaki Uchiyama, Fabien Spindler. Pose Estimation for Augmented Reality: A Hands-On Survey. IEEE Transactions on Visualization and Computer Graphics, 2016, 22 (12), pp.2633 - 2651. ⟨10.1109/TVCG.2015.2513408⟩. ⟨hal-01246370⟩. https://ieeexplore.ieee.org/document/7368948
 
 ## License
 
