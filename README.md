@@ -3,7 +3,7 @@
 This repo contains the ROS 2 code for locating and estimating a robot position on a map using ArUco tags.
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-lightgrey.svg)
-![ROS 2](https://img.shields.io/badge/ROS2-Humble-blue?logo=ros)
+![ROS 2](https://img.shields.io/badge/ROS2-Jazzy-blue?logo=ros)
 ![Python](https://img.shields.io/badge/Python-3.12+-blue?logo=python)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-33cc55?logo=opencv)
 ![Issues](https://img.shields.io/github/issues/Mowibox/aruco-map-locator)
