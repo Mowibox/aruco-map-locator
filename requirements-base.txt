@@ -1,4 +1,4 @@
-setuptools==58.2.0
+setuptools==68.1.2
 transforms3d==0.4.2
 numpy==2.2.6
 flask==3.1.2
