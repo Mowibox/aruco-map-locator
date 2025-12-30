@@ -23,8 +23,8 @@ N_IMAGES = 0              # Counter for the number of chessboard detections
 TIME_DELAY = 3            # Minimal time between two detections
 
 # Frame dimensions
-FRAME_WIDTH = 640
-FRAME_HEIGHT = 480
+FRAME_WIDTH = 640//2
+FRAME_HEIGHT = 480//2
 
 objp = np.zeros((CHESSBOARD_SIZE[0]*CHESSBOARD_SIZE[1], 3), np.float32)
 objp[:, :2] = np.mgrid[0:CHESSBOARD_SIZE[0], 0:CHESSBOARD_SIZE[1]].T.reshape(-1,2)*SQUARE_SIZE
@@ -121,10 +121,12 @@ def camera_calibration(MAX_IMAGES):
             current_time = time.time()
             if current_time - last_detection_time > TIME_DELAY:
                 ret, corners = cv2.findChessboardCorners(gray, CHESSBOARD_SIZE, None)
+                criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
                 if ret:
+                    corners2 = cv2.cornerSubPix(gray, corners, (11,11), (-1,-1), criteria)
                     objpoints.append(objp)
-                    imgpoints.append(corners)
+                    imgpoints.append(corners2)
                     cv2.drawChessboardCorners(frame, CHESSBOARD_SIZE, corners, ret)
                     N_IMAGES+=1
                     last_detection_time = current_time
