@@ -15,15 +15,8 @@ RUN apt-get update && apt-get upgrade -y \
 
 RUN rm /usr/lib/python3.*/EXTERNALLY-MANAGED
 
-#To remove the error "setup.py is deprecated" during build
-RUN pip install setuptools==58.2.0
-
-RUN pip install transforms3d \
-                numpy \
-                opencv-python-headless \
-                opencv-contrib-python \
-                flask \
-                pyzbar 
+COPY requirements-headless.txt /tmp/
+RUN pip install --no-cache-dir -r /tmp/requirements-headless.txt
 
 WORKDIR /root
 RUN git clone https://github.com/Mowibox/aruco-map-locator.git
