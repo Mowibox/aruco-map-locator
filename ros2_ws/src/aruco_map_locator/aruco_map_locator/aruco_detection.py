@@ -252,16 +252,16 @@ def estimate_robot_pose(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs:
         xh, yh = reproject_marker_pos_to_ground(tvec, hmtx)
 
         # Getting position with PnP
-        xp, yp = pos_cam_to_world(tvec, camera_pose)
+        x, y = xh, yh
+        if camera_pose is not None:
+            xp, yp = pos_cam_to_world(tvec, camera_pose)
 
-        if xp is None or yp is None:
-            x, y = xh, yh
-        else:
-            x_corr = xp + x_err
-            y_corr = yp + y_err
+            if xp is not None and yp is not None:
+                x_corr = xp + x_err
+                y_corr = yp + y_err
 
-            x = WEIGHT_HMTX * xh + WEIGHT_PNP * x_corr
-            y = WEIGHT_HMTX * yh + WEIGHT_PNP * y_corr
+                x = WEIGHT_HMTX * xh + WEIGHT_PNP * x_corr
+                y = WEIGHT_HMTX * yh + WEIGHT_PNP * y_corr
 
         # Getting orientation with angle-axis method
         rot_mtx, _ = cv2.Rodrigues(rvec[0])
