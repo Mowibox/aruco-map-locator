@@ -113,6 +113,114 @@ def reproject_marker_pos_to_ground(tvec: np.ndarray, hmtx: np.ndarray) -> np.nda
     return x, y
 
 
+def compute_camere_pose_from_anchors(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: np.ndarray, marker_positions: dict) -> tuple:
+    """
+    Computes the camere pose from the anchor ArUco tags
+    
+    @param img: The input image
+    @param camera_matrix: The intrinsic matrix
+    @param dist_coeffs: The distortion coefficients
+    @param marker_positions: The marker ids and their real-world positions
+    """
+
+    _, corners, ids =  detect_aruco(img, camera_matrix, dist_coeffs, display=False)
+
+    if ids is None:
+        return None
+    
+    pixel_points = []
+    real_points = []
+
+    for i, marker_id in enumerate(ids.flatten()):
+        if marker_id in marker_positions:
+            center = corners[i][0].mean(axis=0)
+            pixel_points.append(center)
+            x, y = marker_positions[marker_id]
+            real_points.append([x/M_TO_CM, y/M_TO_CM, 0])
+    
+    if len(pixel_points) < 4:
+        return None
+    
+    pixel_points = np.array(pixel_points, dtype=np.float32)
+    real_points = np.array(real_points, dtype=np.float32)
+
+    success, rvec, tvec = cv2.solvePnP(real_points, pixel_points, camera_matrix, dist_coeffs)
+
+    if not success:
+        return None
+    
+    return rvec, tvec
+
+
+def pos_cam_to_world(tvec: np.ndarray, camera_pose: tuple) -> tuple:
+    """
+    Transforms a position from camera frame to world frame
+
+    @param tvec: The position in camera frame
+    @param camera_pose: The camera pose (rvec, tvec) in world frame
+    """
+
+    if camera_pose is None:
+        return None
+    
+    rvec_cam, tvec_cam = camera_pose
+    rmtx_cam, _ = cv2.Rodrigues(rvec_cam)
+
+    marker_pos_cam = tvec[0][0]
+
+    world_z_in_cam = rmtx_cam[:, 2]
+
+    robot_base_cam = marker_pos_cam - (ROBOT_HEIGHT * world_z_in_cam)
+
+    robot_base_world = rmtx_cam.T @ (robot_base_cam - tvec_cam.flatten())
+
+    x, y = robot_base_world[0]*M_TO_CM*PX_RES, robot_base_world[1]*M_TO_CM*PX_RES
+
+    return x, y
+
+
+def compute_anchor_error(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: np.ndarray, marker_positions: dict, camera_pose: tuple) -> tuple:
+    """
+    Computes the error between the detected anchor positions and their real-world positions
+
+    @param img: The input image 
+    @param camera_matrix: The intrinsic matrix
+    @param dist_coeffs: The distortion coefficients
+    @param marker_positions: The marker ids and their real-world positions
+    @param camera_pose: The camera pose (rvec, tvec) in world frame
+    """
+    if camera_pose is None:
+        return 0.0, 0.0
+    
+    _, corners, ids =  detect_aruco(img, camera_matrix, dist_coeffs, display=False)
+
+    if ids is None:
+        return 0.0, 0.0
+    
+    errors_x = []
+    errors_y = [] 
+
+    for i, marker_id in enumerate(ids.flatten()):
+        if marker_id in marker_positions:
+            _, tvec, _ = aruco.estimatePoseSingleMarkers(corners[i], MARKER_SIZE, camera_matrix, dist_coeffs)
+            x_mes, y_mes = pos_cam_to_world(tvec, camera_pose)
+
+            if x_mes is None or y_mes is None:
+                continue
+
+            x_real, y_real = marker_positions[marker_id]
+            x_real *= PX_RES
+            y_real *= PX_RES
+
+            errors_x.append(x_mes - x_real)
+            errors_y.append(y_mes - y_real)
+    
+    if len(errors_x) == 0 or len(errors_y) == 0:
+        return 0.0, 0.0
+    
+    return np.mean(errors_x), np.mean(errors_y)
+    
+
 def estimate_robot_pose(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: np.ndarray, marker_positions: dict, hmtx: np.ndarray) -> tuple:
     """
     Estimates the robot pose based on ArUco tags
@@ -130,6 +238,9 @@ def estimate_robot_pose(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs:
     if ids is None:
         return robot_pose
     
+    camera_pose = compute_camere_pose_from_anchors(img, camera_matrix, dist_coeffs, marker_positions)
+    x_err, y_err = compute_anchor_error(img, camera_matrix, dist_coeffs, marker_positions, camera_pose)
+    
     for i, marker_id in enumerate(ids.flatten()):
         if marker_id in marker_positions or hmtx is None: # Don't process the tags used for mapping
             continue
@@ -137,8 +248,20 @@ def estimate_robot_pose(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs:
         marker_corners = corners[i]
         rvec, tvec, _ = aruco.estimatePoseSingleMarkers(marker_corners, MARKER_SIZE, camera_matrix, dist_coeffs)
         
-        # Getting position
-        x, y = reproject_marker_pos_to_ground(tvec, hmtx)
+        # Getting position with homography method
+        xh, yh = reproject_marker_pos_to_ground(tvec, hmtx)
+
+        # Getting position with PnP
+        x, y = xh, yh
+        if camera_pose is not None:
+            xp, yp = pos_cam_to_world(tvec, camera_pose)
+
+            if xp is not None and yp is not None:
+                x_corr = xp + x_err
+                y_corr = yp + y_err
+
+                x = WEIGHT_HMTX * xh + WEIGHT_PNP * x_corr
+                y = WEIGHT_HMTX * yh + WEIGHT_PNP * y_corr
 
         # Getting orientation with angle-axis method
         rot_mtx, _ = cv2.Rodrigues(rvec[0])
