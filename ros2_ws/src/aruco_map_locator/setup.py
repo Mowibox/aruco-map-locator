@@ -16,7 +16,6 @@ setup(
         'setuptools',
         'numpy',
         'pyyaml',
-        'opencv-python',
         'opencv-contrib-python'
         ],
     zip_safe=True,
