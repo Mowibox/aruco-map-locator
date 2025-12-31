@@ -4,7 +4,7 @@
   <name>aruco_map_locator</name>
   <version>1.0.0</version>
   <description>Aruco image processing and map generation</description>
-  <maintainer email="ousmane.thiongane@ensea.fr">mowibox</maintainer>
+  <maintainer email="ousmane.thiongane@outlook.com">mowibox</maintainer>
   <license>MIT</license>
 
   <test_depend>ament_copyright</test_depend>
