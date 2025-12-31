@@ -1,6 +1,7 @@
 #include <mutex>
 #include <thread>
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp/qos.hpp>
 #include <opencv2/opencv.hpp>
 #include <std_msgs/msg/header.hpp>
 #include <sensor_msgs/msg/image.hpp>
@@ -33,7 +34,13 @@ class ImagePublisher : public rclcpp::Node{
     public:
     ImagePublisher(cv::VideoCapture &capture)
         : Node("image_publisher"), capture_(capture), is_running_(true){
-            publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_feed", 20);
+
+            // Sensor QoS profile
+            auto qos = rclcpp::QoS(rclcpp::KeepLast(5))
+                .reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT)
+                .durability(RMW_QOS_POLICY_DURABILITY_VOLATILE);
+
+            publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_feed", qos);
             timer_ = this->create_wall_timer(std::chrono::duration<double>(0.2), std::bind(&ImagePublisher::publish_frame, this));
             thread_ = std::thread(&ImagePublisher::capture_frames, this);
     }

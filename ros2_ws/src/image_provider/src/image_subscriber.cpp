@@ -1,5 +1,6 @@
 #include <yaml-cpp/yaml.h>
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp/qos.hpp>
 #include <opencv2/opencv.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
@@ -46,8 +47,12 @@ class ImageSubscriber : public rclcpp::Node {
         this->declare_parameter<std::string>("topic", "camera_feed");
         topic = this->get_parameter("topic").as_string();
 
+        auto qos = rclcpp::QoS(rclcpp::KeepLast(5))
+            .reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT)
+            .durability(RMW_QOS_POLICY_DURABILITY_VOLATILE);
+
         subscriber_ = this->create_subscription<sensor_msgs::msg::Image>(
-            topic, 10, std::bind(&ImageSubscriber::image_callback, this, std::placeholders::_1));
+            topic, qos, std::bind(&ImageSubscriber::image_callback, this, std::placeholders::_1));
         
         if (!load_calibration_params(CALIBRATION_FILE, camera_matrix_, dist_coeffs_)){
         return;

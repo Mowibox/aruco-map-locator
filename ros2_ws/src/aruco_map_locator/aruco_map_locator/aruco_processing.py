@@ -3,6 +3,7 @@
 import rclpy
 from pose2d_msgs.msg import Pose2D
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from sensor_msgs.msg import Image
 
 from .aruco_detection import *
@@ -14,14 +15,29 @@ class ArucoProcessing(Node):
     def __init__(self) -> None:
         """Initialize the ArucoProcessing node."""
         super().__init__("aruco_processing")
-        self.subscriber = self.create_subscription(Image, "camera_feed", self.image_callback, 20)
+
+         # Sensor QoS
+        sensor_qos = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,  
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=5  
+        )
+        
+        # Pose QoS
+        pose_qos = QoSProfile(
+            reliability=QoSReliabilityPolicy.RELIABLE,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=10
+        )
+
+        self.subscriber = self.create_subscription(Image, "camera_feed", self.image_callback, sensor_qos)
         self.subscriber  # prevent unused variable warning
 
-        self.aruco_frame_publisher = self.create_publisher(Image, "aruco_frame", 20)
+        self.aruco_frame_publisher = self.create_publisher(Image, "aruco_frame", sensor_qos)
 
-        self.robot_pose_publisher = self.create_publisher(Pose2D, "robot_pose", 20)
+        self.robot_pose_publisher = self.create_publisher(Pose2D, "robot_pose", pose_qos)
 
-        self.robot_pose_in_map_publisher = self.create_publisher(Image, "robot_pose_in_map", 20)
+        self.robot_pose_in_map_publisher = self.create_publisher(Image, "robot_pose_in_map", pose_qos)
 
         self.hmtx = None
 

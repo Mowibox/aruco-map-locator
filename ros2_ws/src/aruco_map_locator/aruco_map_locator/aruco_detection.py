@@ -77,7 +77,11 @@ def compute_homography(
     real_points_arr = np.asarray(real_points, dtype=np.float32)
 
     hmtx, _ = cv2.findHomography(pixel_points_arr, real_points_arr)
-    return hmtx
+
+    if hmtx is None:
+        return None
+    
+    return hmtx.astype(np.float64)
 
 
 def reproject_marker_pos_to_ground(
