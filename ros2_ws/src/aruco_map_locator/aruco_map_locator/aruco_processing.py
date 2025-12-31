@@ -3,7 +3,7 @@
 import rclpy
 from pose2d_msgs.msg import Pose2D
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
 from sensor_msgs.msg import Image
 
 from .aruco_detection import *
@@ -16,19 +16,11 @@ class ArucoProcessing(Node):
         """Initialize the ArucoProcessing node."""
         super().__init__("aruco_processing")
 
-         # Sensor QoS
-        sensor_qos = QoSProfile(
-            reliability=QoSReliabilityPolicy.BEST_EFFORT,  
-            history=QoSHistoryPolicy.KEEP_LAST,
-            depth=5  
-        )
-        
+        # Sensor QoS
+        sensor_qos = QoSProfile(reliability=QoSReliabilityPolicy.BEST_EFFORT, history=QoSHistoryPolicy.KEEP_LAST, depth=5)
+
         # Pose QoS
-        pose_qos = QoSProfile(
-            reliability=QoSReliabilityPolicy.RELIABLE,
-            history=QoSHistoryPolicy.KEEP_LAST,
-            depth=10
-        )
+        pose_qos = QoSProfile(reliability=QoSReliabilityPolicy.RELIABLE, history=QoSHistoryPolicy.KEEP_LAST, depth=10)
 
         self.subscriber = self.create_subscription(Image, "camera_feed", self.image_callback, sensor_qos)
         self.subscriber  # prevent unused variable warning

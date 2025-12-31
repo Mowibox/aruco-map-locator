@@ -80,7 +80,7 @@ def compute_homography(
 
     if hmtx is None:
         return None
-    
+
     return hmtx.astype(np.float64)
 
 

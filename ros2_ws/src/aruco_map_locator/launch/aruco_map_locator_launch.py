@@ -2,9 +2,8 @@
 
 import socket
 
-from launch_ros.actions import Node
-
 from launch import LaunchDescription
+from launch_ros.actions import Node
 
 
 def get_host_ip() -> str:
