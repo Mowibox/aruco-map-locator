@@ -75,6 +75,44 @@ def compute_homography(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: 
     return hmtx
 
 
+def reproject_marker_pos_to_ground(tvec: np.ndarray, hmtx: np.ndarray) -> np.ndarray:
+    """
+    Reprojects the robot ArUco tag position to the ground plane using homography
+
+    @param marker_pos_cam: The marker position in camera frame
+    @param hmtx: The homography matrix
+    """
+    marker_pos_cam = tvec[0][0] # Marker position in camera frame
+        
+    # Extract rotation from homography 
+    hmtx_norm = hmtx / hmtx[2, 2]  # Normalize
+    h1, h2 = hmtx_norm[:, 0], hmtx_norm[:, 1]
+    
+    r1, r2 = h1, h2
+    r3 = np.cross(r1, r2)  
+    
+    # Normalization
+    r1 = r1 / np.linalg.norm(r1)
+    r2 = r2 / np.linalg.norm(r2)
+    r3 = r3 / np.linalg.norm(r3) # z-axis direction
+
+    # Delta between marker and robot's top in camera frame
+    robot_top_cam = marker_pos_cam -(ROBOT_HEIGHT * r3)
+    
+    robot_proj_pos, _ = cv2.projectPoints(
+        robot_top_cam.reshape(1, 1, 3),
+        np.zeros(3),
+        np.zeros(3),
+        camera_matrix,
+        dist_coeffs
+    )
+    
+    robot_ground_pos = np.array([[[robot_proj_pos[0][0][0], robot_proj_pos[0][0][1]]]], dtype=np.float32)
+    x, y = cv2.perspectiveTransform(robot_ground_pos, hmtx).squeeze()
+
+    return x, y
+
+
 def estimate_robot_pose(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs: np.ndarray, marker_positions: dict, hmtx: np.ndarray) -> tuple:
     """
     Estimates the robot pose based on ArUco tags
@@ -98,10 +136,9 @@ def estimate_robot_pose(img: np.ndarray, camera_matrix: np.ndarray, dist_coeffs:
         
         marker_corners = corners[i]
         rvec, tvec, _ = aruco.estimatePoseSingleMarkers(marker_corners, MARKER_SIZE, camera_matrix, dist_coeffs)
-
+        
         # Getting position
-        marker_corners_in_h = cv2.perspectiveTransform(np.array(marker_corners).reshape(-1, 1, 2), hmtx).squeeze()
-        x, y = marker_corners_in_h.mean(axis=0) # Coordinates of the center
+        x, y = reproject_marker_pos_to_ground(tvec, hmtx)
 
         # Getting orientation with angle-axis method
         rot_mtx, _ = cv2.Rodrigues(rvec[0])
