@@ -29,7 +29,7 @@ class ArucoProcessing(Node):
 
         self.robot_pose_publisher = self.create_publisher(Pose2D, "robot_pose", pose_qos)
 
-        self.robot_pose_in_map_publisher = self.create_publisher(Image, "robot_pose_in_map", pose_qos)
+        self.robot_pose_in_map_publisher = self.create_publisher(Image, "robot_pose_in_map", sensor_qos)
 
         self.hmtx = None
 
