@@ -62,8 +62,8 @@ def compute_homography(
     @param dist_coeffs: The distortion coefficients
     @param marker_positions: The marker ids and their real-world positions
     """
-    image_points: list[npt.NDArray[np.float32]] = []  # [x', y']
-    object_points: list[npt.NDArray[np.float32]] = []  # [X, Y]
+    image_points: list[npt.NDArray[np.float32]] = []  # [x', y'] 
+    object_points: list[npt.NDArray[np.float32]] = []  # [X, Y] 
 
     img, corners, ids = detect_aruco(img, camera_matrix, dist_coeffs, display=False)
 
@@ -108,7 +108,7 @@ def reproject_marker_pos_to_ground(
     pos_cam_marker = tvec[0][0]  # Marker position in camera frame [xc, yc, zc]
 
     # Extract R_cam_ground from homography
-    # H(z=0) = [r1 r2 t]  
+    # H(z=0) = [r1 r2 t_cam_world]  
     HmtxN = Hmtx / Hmtx[2, 2]  # Normalize
     h1, h2 = HmtxN[:, 0], HmtxN[:, 1]
 
@@ -186,7 +186,7 @@ def pos_cam_to_world(tvec: np.ndarray, camera_pose: tuple) -> Optional[tuple[flo
     rvec_cam_world, tvec_cam_world = camera_pose
     Rmtx_cam_world, _ = cv2.Rodrigues(rvec_cam_world) 
 
-    pos_cam_marker = tvec[0][0]
+    pos_cam_marker = tvec[0][0]  # Marker position in camera frame [xc, yc, zc]
 
     z_world_cam = Rmtx_cam_world[:, 2] # z-axis direction
 
