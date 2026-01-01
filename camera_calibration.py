@@ -20,9 +20,9 @@ import yaml
 from flask import Flask, Response
 
 CHESSBOARD_SIZE = (7, 10)  # Number of inners corners (row, col)
-SQUARE_SIZE = 0.025  # In meters (25 mm)
+SQUARE_SIZE = 0.025  # Size of a chessboard square (in meters)
 N_IMAGES = 0  # Counter for the number of chessboard detections
-TIME_DELAY = 3  # Minimal time between two detections
+TIME_DELAY = 3  # Minimal time between two detections (in seconds)
 
 # Frame dimensions
 FRAME_WIDTH = 640 // 2
