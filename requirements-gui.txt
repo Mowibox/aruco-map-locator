@@ -1,2 +1,2 @@
 -r requirements-base.txt
-opencv-contrib-python-headless==4.12.0.88
+opencv-contrib-python==4.12.0.88

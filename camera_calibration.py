@@ -98,7 +98,7 @@ def camera_calibration(MAX_IMAGES: int) -> Generator[bytes, None, None]:
     camera = cv2.VideoCapture(0)
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
-    camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG")) # type: ignore[attr-defined]
+    camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))  # type: ignore[attr-defined]
     if not camera.isOpened():
         yield b"Error: Could not open camera."
         return
@@ -143,7 +143,7 @@ def camera_calibration(MAX_IMAGES: int) -> Generator[bytes, None, None]:
     dist_coeffs = np.zeros((5, 1), dtype=np.float64)
 
     if len(objpoints) > 0:
-        ret, camera_matrix, dist_coeffs, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None) # type: ignore
+        ret, camera_matrix, dist_coeffs, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)  # type: ignore
         print(f"Camera Matrix:\n{camera_matrix}\n")
         print(f"Distortion coefficients:\n{dist_coeffs}\n")
 
