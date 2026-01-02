@@ -6,6 +6,8 @@ This repo contains the ROS 2 code for locating and estimating a robot position o
 ![ROS 2](https://img.shields.io/badge/ROS2-Jazzy-blue?logo=ros)
 ![Python](https://img.shields.io/badge/Python-3.12+-blue?logo=python)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.x-33cc55?logo=opencv)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+![linter](https://github.com/pollen-robotics/python-template/actions/workflows/lint.yml/badge.svg)
 ![Issues](https://img.shields.io/github/issues/Mowibox/aruco-map-locator)
 
 <p align="center">
