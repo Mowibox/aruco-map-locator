@@ -1,10 +1,10 @@
 """Aruco processing node for ROS 2 that estimates robot pose, and publishes relevant data."""
 
-import rclpy
-from pose2d_msgs.msg import Pose2D
-from rclpy.node import Node
-from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
-from sensor_msgs.msg import Image
+import rclpy  # type: ignore
+from pose2d_msgs.msg import Pose2D  # type: ignore
+from rclpy.node import Node  # type: ignore
+from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy  # type: ignore
+from sensor_msgs.msg import Image  # type: ignore
 
 from .aruco_detection import *
 
@@ -31,7 +31,7 @@ class ArucoProcessing(Node):
 
         self.robot_pose_in_map_publisher = self.create_publisher(Image, "robot_pose_in_map", sensor_qos)
 
-        self.hmtx = None
+        self.Hmtx: Optional[npt.NDArray[np.float64]] = None
 
     def image_callback(self, msg) -> None:
         """Image processing callback function.
@@ -46,18 +46,18 @@ class ArucoProcessing(Node):
             aruco_msg = self.mat_to_image_msg(aruco_frame, msg.header)
             self.aruco_frame_publisher.publish(aruco_msg)
 
-            if self.hmtx is None and ids is not None and all(x in ids.flatten() for x in MARKER_POSITIONS):
-                self.hmtx = compute_homography(frame, camera_matrix, dist_coeffs, MARKER_POSITIONS)
+            if self.Hmtx is None and ids is not None and all(x in ids.flatten() for x in MARKER_POSITIONS):
+                self.Hmtx = compute_homography(frame, camera_matrix, dist_coeffs, MARKER_POSITIONS)
 
-            if self.hmtx is not None:
-                robot_pose = estimate_robot_pose(frame, camera_matrix, dist_coeffs, MARKER_POSITIONS, self.hmtx)
+            if self.Hmtx is not None:
+                robot_pose = estimate_robot_pose(frame, camera_matrix, dist_coeffs, MARKER_POSITIONS, self.Hmtx)
 
                 for marker_id, (x, y, theta_z) in robot_pose.items():
                     pose_msg = Pose2D()
                     pose_msg.marker_id = int(marker_id)
 
-                    pose_msg.x = float(x / PX_RES)
-                    pose_msg.y = float(y / PX_RES)
+                    pose_msg.x = float(x * M_TO_CM)
+                    pose_msg.y = float(y * M_TO_CM)
                     pose_msg.theta = float(theta_z)
 
                     self.robot_pose_publisher.publish(pose_msg)

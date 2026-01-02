@@ -12,30 +12,33 @@ import os
 import numpy as np
 import numpy.typing as npt
 import yaml
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_share_directory  # type: ignore
 
 package_share_dir = get_package_share_directory("image_provider")
 CALIBRATION_FILE = os.path.join(package_share_dir, "config", "cam_params.yaml")
 
+M_TO_CM = 100  # Meters to centimeters conversion
 
-ROBOT_RADIUS = 0.01  # The robot radius for vizualization (in m)
-ROBOT_HEIGHT = 0.035  # The robot height (in m)
+ROBOT_RADIUS = 0.01  # The robot radius for vizualization (m)
+ROBOT_HEIGHT = 0.035  # The robot height (m)
 
 MARKER_SIZE = 0.02  # In meters (2 cm)
-M_TO_CM = 100  # Meters to centimeters conversion
-WORLD_SIZE = [30, 20]  # World dimensions (w, h)
-PX_RES = 20  # 1 cm is worth 1*PX_RES pixels
+WORLD_SIZE = [0.30, 0.20]  # World dimensions (w, h), (m)
 
-# Aruco real-world coordinates ID:[x, y] (in cm)
+# Aruco real-world coordinates ID:[x, y] (m)
 MARKER_POSITIONS = {
-    20: [6, 14],
-    21: [24, 14],
-    22: [6, 6],
-    23: [24, 6],
+    20: [0.06, 0.14],
+    21: [0.24, 0.14],
+    22: [0.06, 0.06],
+    23: [0.24, 0.06],
 }
 
 WEIGHT_HMTX = 0.5  # Weight for the homography matrix position estimation
 WEIGHT_PNP = 0.5  # Weight for the PnP posiiton estimation
+
+# For visualization purposes
+IMAGE_WIDTH = 600  # Image width (px)
+IMAGE_HEIGHT = 400  # Image height (px)
 
 
 def load_calibration_params(filepath: str) -> tuple[npt.NDArray[np.float32], npt.NDArray[np.float32]]:

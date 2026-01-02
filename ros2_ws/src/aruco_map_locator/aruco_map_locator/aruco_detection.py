@@ -24,7 +24,7 @@ from .params import *
 
 
 def detect_aruco(
-    img: np.ndarray, camera_matrix: npt.NDArray[np.float64], dist_coeffs: npt.NDArray[np.float64], display: bool = True
+    img: np.ndarray, camera_matrix: npt.NDArray[np.float32], dist_coeffs: npt.NDArray[np.float32], display: bool = True
 ) -> tuple:
     """
     Detect the ArUco tags in the provided image.
@@ -52,7 +52,7 @@ def detect_aruco(
 
 
 def compute_homography(
-    img: np.ndarray, camera_matrix: npt.NDArray[np.float64], dist_coeffs: npt.NDArray[np.float64], marker_positions: dict
+    img: np.ndarray, camera_matrix: npt.NDArray[np.float32], dist_coeffs: npt.NDArray[np.float32], marker_positions: dict
 ) -> Optional[npt.NDArray[np.float64]]:
     """
     Compute the homography matrix using the ArUco tags.
@@ -70,11 +70,12 @@ def compute_homography(
     if ids is None:
         return None
 
-    for i, marker_id in enumerate(ids.flatten()):
-        if marker_id in marker_positions:
-            center = corners[i][0].mean(axis=0)
-            image_points.append(center)
-            object_points.append(np.multiply(marker_positions[marker_id], PX_RES))
+    if ids is not None and corners is not None:
+        for i, marker_id in enumerate(ids.flatten()):
+            if marker_id in marker_positions:
+                center = corners[i][0].mean(axis=0)
+                image_points.append(center)
+                object_points.append(marker_positions[marker_id])
 
     if len(image_points) < 4:
         return None
@@ -93,8 +94,8 @@ def compute_homography(
 
 def reproject_marker_pos_to_ground(
     tvec: np.ndarray,
-    camera_matrix: npt.NDArray[np.float64],
-    dist_coeffs: npt.NDArray[np.float64],
+    camera_matrix: npt.NDArray[np.float32],
+    dist_coeffs: npt.NDArray[np.float32],
     Hmtx: npt.NDArray[np.float64],
 ) -> tuple[float, float]:
     """
@@ -134,10 +135,10 @@ def reproject_marker_pos_to_ground(
 
 
 def compute_camera_pose_from_anchors(
-    camera_matrix: npt.NDArray[np.float64],
-    dist_coeffs: npt.NDArray[np.float64],
-    corners: list,
-    ids: list,
+    camera_matrix: npt.NDArray[np.float32],
+    dist_coeffs: npt.NDArray[np.float32],
+    corners: Optional[npt.NDArray[np.float32]],
+    ids: Optional[npt.NDArray[np.float32]],
     marker_positions: dict,
 ) -> Optional[tuple[np.ndarray, np.ndarray]]:
     """
@@ -166,16 +167,17 @@ def compute_camera_pose_from_anchors(
         dtype=np.float32,
     )
 
-    for i, marker_id in enumerate(ids.flatten()):
-        if marker_id in marker_positions:
-            marker_corners_2d = corners[i][0]
+    if ids is not None and corners is not None:
+        for i, marker_id in enumerate(ids.flatten()):
+            if marker_id in marker_positions:
+                marker_corners_2d = corners[i][0]
 
-            x, y = marker_positions[marker_id]
+                x, y = marker_positions[marker_id]
 
-            markers_corners_3d = corners_3d_loc + np.array([x / M_TO_CM, y / M_TO_CM, 0])
+                markers_corners_3d = corners_3d_loc + np.array([x, y, 0])
 
-            for corner_2d, corner_3d in zip(marker_corners_2d, markers_corners_3d):
-                image_points.append(corner_2d)
+                for corner_2d, corner_3d in zip(marker_corners_2d, markers_corners_3d):
+                    image_points.append(corner_2d)
                 object_points.append(corner_3d)
 
     if len(image_points) < 4:
@@ -215,16 +217,16 @@ def pos_cam_to_world(tvec: np.ndarray, camera_pose: tuple) -> Optional[tuple[flo
 
     pos_world_robot = Rmtx_cam_world.T @ (pos_cam_robot - tvec_cam_world.flatten())
 
-    xp, yp = pos_world_robot[0] * M_TO_CM * PX_RES, pos_world_robot[1] * M_TO_CM * PX_RES
+    xp, yp = pos_world_robot[0], pos_world_robot[1]
 
     return xp, yp
 
 
 def compute_anchor_error(
-    camera_matrix: npt.NDArray[np.float64],
-    dist_coeffs: npt.NDArray[np.float64],
-    corners: list,
-    ids: list,
+    camera_matrix: npt.NDArray[np.float32],
+    dist_coeffs: npt.NDArray[np.float32],
+    corners: Optional[npt.NDArray[np.float32]],
+    ids: Optional[npt.NDArray[np.float32]],
     marker_positions: dict,
     camera_pose: Optional[tuple[np.ndarray, np.ndarray]],
 ) -> tuple[float, float]:
@@ -247,22 +249,20 @@ def compute_anchor_error(
     errors_x = []
     errors_y = []
 
-    for i, marker_id in enumerate(ids.flatten()):
-        if marker_id in marker_positions:
-            _, tvec, _ = aruco.estimatePoseSingleMarkers([corners[i]], MARKER_SIZE, camera_matrix, dist_coeffs)
+    if ids is not None and corners is not None:
+        for i, marker_id in enumerate(ids.flatten()):
+            if marker_id in marker_positions:
+                _, tvec, _ = aruco.estimatePoseSingleMarkers([corners[i]], MARKER_SIZE, camera_matrix, dist_coeffs)
 
-            pos_meas = pos_cam_to_world(tvec, camera_pose)
-            if pos_meas is None:
-                continue
-            else:
+                pos_meas = pos_cam_to_world(tvec, camera_pose)
+                if pos_meas is None:
+                    continue
+
                 x_mes, y_mes = pos_meas
+                x_real, y_real = marker_positions[marker_id]
 
-            x_real, y_real = marker_positions[marker_id]
-            x_real *= PX_RES
-            y_real *= PX_RES
-
-            errors_x.append(x_mes - x_real)
-            errors_y.append(y_mes - y_real)
+                errors_x.append(x_mes - x_real)
+                errors_y.append(y_mes - y_real)
 
     if len(errors_x) == 0 or len(errors_y) == 0:
         return 0.0, 0.0
@@ -272,8 +272,8 @@ def compute_anchor_error(
 
 def estimate_robot_pose(
     img: np.ndarray,
-    camera_matrix: npt.NDArray[np.float64],
-    dist_coeffs: npt.NDArray[np.float64],
+    camera_matrix: npt.NDArray[np.float32],
+    dist_coeffs: npt.NDArray[np.float32],
     marker_positions: dict,
     Hmtx: npt.NDArray[np.float64],
 ) -> dict[int, tuple[float, float, float]]:
@@ -325,8 +325,8 @@ def estimate_robot_pose(
 
         print(
             f"Robot n°{marker_id} pose: "
-            f"x = {x/PX_RES:.2f} cm; "
-            f"y = {y/PX_RES:.2f} cm; "
+            f"x = {x*M_TO_CM:.2f} cm; "
+            f"y = {y*M_TO_CM:.2f} cm; "
             f"theta = {np.rad2deg(theta_z):.1f}°"
         )
         robot_pose[marker_id] = (x, y, theta_z)
@@ -340,15 +340,19 @@ def pose_to_img(robot_pose: dict) -> np.ndarray:
 
     @robot_pose: The dictionnary of robot poses
     """
-    world_dim = np.multiply(WORLD_SIZE, PX_RES)
-    matrix = np.zeros((world_dim[1], world_dim[0], 3), dtype=np.uint8)  # RGB format
+
+    ppm_x = IMAGE_WIDTH / WORLD_SIZE[0]
+    ppm_y = IMAGE_HEIGHT / WORLD_SIZE[1]
+    px_res = (ppm_x + ppm_y) // 2
+
+    matrix = np.zeros((IMAGE_HEIGHT, IMAGE_WIDTH, 3), dtype=np.uint8)  # RGB format
 
     if len(robot_pose) == 0:
         return matrix
 
     for marker_id, (x, y, theta_z) in robot_pose.items():
-        px, py = int(x), int(y)
-        py = world_dim[1] - py  # Putting the origin axis to the bottom left
+        px, py = int(x * ppm_x), int(y * ppm_y)
+        py = IMAGE_HEIGHT - py  # Putting the origin axis to the bottom left
 
         if 1 <= marker_id <= 5:  # Blue team
             color = (255, 50, 0)
@@ -359,12 +363,12 @@ def pose_to_img(robot_pose: dict) -> np.ndarray:
         neg_color = (255 - color[0], 255 - color[1], 255 - color[2])
 
         # Robot position
-        cv2.circle(matrix, (px, py), int(ROBOT_RADIUS * M_TO_CM * PX_RES), color, -1)
+        cv2.circle(matrix, (px, py), int(ROBOT_RADIUS * px_res), color, -1)
 
         # Robot orientation
         theta_z = theta_z.item()
-        endx = int(px + PX_RES * ROBOT_RADIUS * M_TO_CM * np.cos(theta_z))
-        endy = int(py + PX_RES * ROBOT_RADIUS * M_TO_CM * np.sin(theta_z))
+        endx = int(px + ROBOT_RADIUS * px_res * np.cos(theta_z))
+        endy = int(py + ROBOT_RADIUS * px_res * np.sin(theta_z))
         cv2.line(matrix, (px, py), (endx, endy), neg_color, 10)
 
     return matrix

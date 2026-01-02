@@ -2,7 +2,7 @@
 
 import socket
 
-from launch import LaunchDescription
+from launch import LaunchDescription  # type: ignore[attr-defined]
 from launch_ros.actions import Node
 
 
