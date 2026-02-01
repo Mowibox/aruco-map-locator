@@ -69,7 +69,7 @@ def compute_homography(
 
     if ids is None:
         return None
-    
+
     half_size = MARKER_SIZE / 2.0
     corners_2d_loc = np.array(
         [
@@ -84,7 +84,7 @@ def compute_homography(
     if ids is not None and corners is not None:
         for i, marker_id in enumerate(ids.flatten()):
             if marker_id in marker_positions:
-                marker_corners_2d = corners[i][0] 
+                marker_corners_2d = corners[i][0]
                 x, y = marker_positions[marker_id]
 
                 marker_corners_world = corners_2d_loc + np.array([x, y], dtype=np.float32)
