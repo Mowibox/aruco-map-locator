@@ -69,13 +69,29 @@ def compute_homography(
 
     if ids is None:
         return None
+    
+    half_size = MARKER_SIZE / 2.0
+    corners_2d_loc = np.array(
+        [
+            [-half_size, +half_size],  # Top-left
+            [+half_size, +half_size],  # Top-right
+            [+half_size, -half_size],  # Bottom-right
+            [-half_size, -half_size],  # Bottom-left
+        ],
+        dtype=np.float32,
+    )
 
     if ids is not None and corners is not None:
         for i, marker_id in enumerate(ids.flatten()):
             if marker_id in marker_positions:
-                center = corners[i][0].mean(axis=0)
-                image_points.append(center)
-                object_points.append(marker_positions[marker_id])
+                marker_corners_2d = corners[i][0] 
+                x, y = marker_positions[marker_id]
+
+                marker_corners_world = corners_2d_loc + np.array([x, y], dtype=np.float32)
+
+                for corner_img, corner_world in zip(marker_corners_2d, marker_corners_world):
+                    image_points.append(corner_img)
+                    object_points.append(corner_world)
 
     if len(image_points) < 4:
         return None
@@ -178,7 +194,7 @@ def compute_camera_pose_from_anchors(
 
                 for corner_2d, corner_3d in zip(marker_corners_2d, markers_corners_3d):
                     image_points.append(corner_2d)
-                object_points.append(corner_3d)
+                    object_points.append(corner_3d)
 
     if len(image_points) < 4:
         return None
@@ -187,7 +203,7 @@ def compute_camera_pose_from_anchors(
     object_points_arr = np.array(object_points, dtype=np.float32)
 
     success, rvec, tvec = cv2.solvePnP(
-        object_points_arr, image_points_arr, camera_matrix, dist_coeffs, flags=cv2.SOLVEPNP_ITERATIVE
+        object_points_arr, image_points_arr, camera_matrix, dist_coeffs, flags=cv2.SOLVEPNP_IPPE_SQUAREE
     )
 
     if not success:
