@@ -61,6 +61,8 @@ class ImagePublisher : public rclcpp::Node{
                 RCLCPP_WARN(this->get_logger(), "Failed to read camera feed.");
                 continue;
             } 
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(33));
         
             std::lock_guard<std::mutex> lock(frame_mutex_);
             latest_frame_ = frame.clone();
@@ -92,14 +94,16 @@ class ImagePublisher : public rclcpp::Node{
 int main(int argc, char **argv){
     rclcpp::init(argc, argv);
 
-    cv::VideoCapture capture(0);
+    cv::VideoCapture capture(0, cv::CAP_V4L2);
     if (!capture.isOpened()){
         std::cerr << "Failed to open camera." << std::endl;
         return 0;
     }
-
+    capture.set(cv::CAP_PROP_FOURCC,
+            cv::VideoWriter::fourcc('M','J','P','G'));
     capture.set(cv::CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
     capture.set(cv::CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
+    capture.set(cv::CAP_PROP_AUTOFOCUS, 0);
 
     auto node = std::make_shared<ImagePublisher>(capture);
     rclcpp::spin(node);

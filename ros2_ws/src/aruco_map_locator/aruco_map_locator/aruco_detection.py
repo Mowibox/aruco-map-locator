@@ -203,7 +203,7 @@ def compute_camera_pose_from_anchors(
     object_points_arr = np.array(object_points, dtype=np.float32)
 
     success, rvec, tvec = cv2.solvePnP(
-        object_points_arr, image_points_arr, camera_matrix, dist_coeffs, flags=cv2.SOLVEPNP_IPPE_SQUARE
+        object_points_arr, image_points_arr, camera_matrix, dist_coeffs, flags=cv2.SOLVEPNP_ITERATIVE
     )
 
     if not success:
