@@ -213,7 +213,11 @@ def compute_camera_pose_from_anchors(
     if not success:
         return None
 
-    return rvec, tvec
+    rvec_refined, tvec_refined = cv2.solvePnPRefineLM(
+        object_points_arr, image_points_arr, camera_matrix, dist_coeffs, rvec, tvec
+    )
+
+    return rvec_refined, tvec_refined
 
 
 def pos_cam_to_world(tvec: np.ndarray, camera_pose: tuple) -> Optional[tuple[float, float]]:
