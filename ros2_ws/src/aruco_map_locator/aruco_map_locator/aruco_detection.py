@@ -155,7 +155,7 @@ def compute_camera_pose_from_anchors(
     camera_matrix: npt.NDArray[np.float32],
     dist_coeffs: npt.NDArray[np.float32],
     corners: Optional[npt.NDArray[np.float32]],
-    ids: Optional[npt.NDArray[np.float32]],
+    ids: Optional[npt.NDArray[np.int32]],
     marker_positions: dict,
 ) -> Optional[tuple[np.ndarray, np.ndarray]]:
     """
@@ -243,7 +243,7 @@ def compute_anchor_error(
     camera_matrix: npt.NDArray[np.float32],
     dist_coeffs: npt.NDArray[np.float32],
     corners: Optional[npt.NDArray[np.float32]],
-    ids: Optional[npt.NDArray[np.float32]],
+    ids: Optional[npt.NDArray[np.int32]],
     marker_positions: dict,
     camera_pose: Optional[tuple[np.ndarray, np.ndarray]],
 ) -> tuple[float, float]:
@@ -307,7 +307,7 @@ def estimate_robot_pose(
     """
     robot_pose: dict[int, tuple[float, float, float]] = {}
 
-    if ids is None:
+    if corners is None or ids is None:
         return robot_pose
 
     camera_pose = compute_camera_pose_from_anchors(camera_matrix, dist_coeffs, corners, ids, marker_positions)
