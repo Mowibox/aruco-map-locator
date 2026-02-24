@@ -52,20 +52,23 @@ def detect_aruco(
 
 
 def compute_homography(
-    img: np.ndarray, camera_matrix: npt.NDArray[np.float32], dist_coeffs: npt.NDArray[np.float32], marker_positions: dict
+    corners: Optional[npt.NDArray[np.float32]],
+    ids: Optional[npt.NDArray[np.int32]],
+    camera_matrix: npt.NDArray[np.float32],
+    dist_coeffs: npt.NDArray[np.float32],
+    marker_positions: dict,
 ) -> Optional[npt.NDArray[np.float64]]:
     """
     Compute the homography matrix using the ArUco tags.
 
-    @param img: The input image
+    @param corners: The detected marker corners
+    @param ids: The detected marker ids
     @param camera_matrix: The intrinsic matrix
     @param dist_coeffs: The distortion coefficients
     @param marker_positions: The marker ids and their real-world positions
     """
     image_points: list[npt.NDArray[np.float32]] = []  # [x', y']
     object_points: list[npt.NDArray[np.float32]] = []  # [X, Y]
-
-    img, corners, ids = detect_aruco(img, camera_matrix, dist_coeffs, display=False)
 
     if ids is None:
         return None
@@ -287,7 +290,8 @@ def compute_anchor_error(
 
 
 def estimate_robot_pose(
-    img: np.ndarray,
+    corners: Optional[npt.NDArray[np.float32]],
+    ids: Optional[npt.NDArray[np.int32]],
     camera_matrix: npt.NDArray[np.float32],
     dist_coeffs: npt.NDArray[np.float32],
     marker_positions: dict,
@@ -296,14 +300,13 @@ def estimate_robot_pose(
     """
     Estimate the robot pose based on ArUco tags.
 
-    @param img: The input image
+    @param corners: The detected marker corners
+    @param ids: The detected marker ids
     @param camera_matrix: The intrinsic matrix
     @param dist_coeffs: The distortion coefficients
     @param marker_positions: The marker ids and their real-world positions
     @param Hmtx: The homography matrix
     """
-    img, corners, ids = detect_aruco(img, camera_matrix, dist_coeffs, display=False)
-
     robot_pose: dict[int, tuple[float, float, float]] = {}
 
     if ids is None:
