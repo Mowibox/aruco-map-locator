@@ -125,20 +125,23 @@ def reproject_marker_pos_to_ground(
     """
     pos_cam_marker = tvec[0][0]  # Marker position in camera frame [xc, yc, zc]
 
-    # Extract R_cam_ground from homography
-    # H(z=0) = [r1 r2 t_cam_world]
-    HmtxN = Hmtx / Hmtx[2, 2]  # Normalize
-    h1, h2 = HmtxN[:, 0], HmtxN[:, 1]
+    Hmtx_inv = np.linalg.inv(Hmtx)  # world -> image
+    Hmtx_inv = Hmtx_inv / Hmtx_inv[2, 2]  # Normalize
 
-    r1, r2 = h1, h2
+    K_inv = np.linalg.inv(camera_matrix)
+
+    # Extract R_cam_world from homography
+    # H(z=0) = [c1 c2 t_cam_world]
+    H_norm = K_inv @ Hmtx_inv
+    h1, h2 = H_norm[:, 0], H_norm[:, 1]
 
     # Normalization
-    r1 = r1 / np.linalg.norm(r1)
-    r2 = r2 / np.linalg.norm(r2)
-    r3 = np.cross(r1, r2)  # Orthogonality of rotation matrix
-    r3 = r3 / np.linalg.norm(r3)  # z-axis direction
+    c1 = h1 / np.linalg.norm(h1)
+    c2 = h2 / np.linalg.norm(h2)
+    c3 = np.cross(c1, c2)  # Orthogonality of rotation matrix
+    c3 = c3 / np.linalg.norm(c3)  # z-axis direction
 
-    pos_cam_robot = pos_cam_marker - (ROBOT_HEIGHT * r3)
+    pos_cam_robot = pos_cam_marker - (ROBOT_HEIGHT * c3)
 
     # Projecting the robot base position to image plane
     uv_robot, _ = cv2.projectPoints(pos_cam_robot.reshape(1, 1, 3), np.zeros(3), np.zeros(3), camera_matrix, dist_coeffs)
@@ -341,7 +344,7 @@ def estimate_robot_pose(
             f"y = {y*M_TO_CM:.2f} cm; "
             f"theta = {np.rad2deg(theta_z):.1f}°"
         )
-        robot_pose[marker_id] = (x, y, theta_z)
+        robot_pose[int(marker_id)] = (x, y, theta_z)
 
     return robot_pose
 

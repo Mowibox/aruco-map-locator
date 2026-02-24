@@ -35,7 +35,7 @@ Precise localization of its environment and dynamic obstacle detection are cruci
 
 ## Documentation
 
- More details about this project are specified in the [wiki](https://github.com/Mowibox/aruco-map-locator/wiki). A short presentation is also available in the ['docs/'](https://github.com/Mowibox/aruco-map-locator/tree/main/docs) folder.
+ More details about this project are specified in the [wiki](https://github.com/Mowibox/aruco-map-locator/wiki). A short presentation is also available in the ['docs/'](https://github.com/Mowibox/aruco-map-locator/tree/main/docs) folder _(outdated)_.
 
 ## Contributions
 
