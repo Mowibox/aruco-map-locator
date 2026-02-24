@@ -47,7 +47,7 @@ class ArucoProcessing(Node):
             self.aruco_frame_publisher.publish(aruco_msg)
 
             if self.Hmtx is None and ids is not None and all(x in ids.flatten() for x in MARKER_POSITIONS):
-                self.Hmtx = compute_homography(corners, ids, camera_matrix, dist_coeffs, MARKER_POSITIONS)
+                self.Hmtx = compute_homography(corners, ids, MARKER_POSITIONS)
 
             if self.Hmtx is not None:
                 robot_pose = estimate_robot_pose(corners, ids, camera_matrix, dist_coeffs, MARKER_POSITIONS, self.Hmtx)

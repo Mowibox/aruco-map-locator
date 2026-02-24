@@ -41,7 +41,6 @@ class ImagePublisher : public rclcpp::Node{
                 .durability(RMW_QOS_POLICY_DURABILITY_VOLATILE);
 
             publisher_ = this->create_publisher<sensor_msgs::msg::Image>("camera_feed", qos);
-            timer_ = this->create_wall_timer(std::chrono::duration<double>(0.2), std::bind(&ImagePublisher::publish_frame, this));
             thread_ = std::thread(&ImagePublisher::capture_frames, this);
     }
 
@@ -62,31 +61,14 @@ class ImagePublisher : public rclcpp::Node{
                 continue;
             } 
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(33));
-        
-            std::lock_guard<std::mutex> lock(frame_mutex_);
-            latest_frame_ = frame.clone();
+            auto msg = mat_to_image_msg(frame, this->get_clock());
+            publisher_->publish(*msg);
         }
-    }
-
-    void publish_frame(){
-       /** 
-        * Publishes the frames to the 'camera_feed' topic
-        */
-        std::lock_guard<std::mutex> lock(frame_mutex_);
-        if (!latest_frame_.empty()) {
-            auto msg = mat_to_image_msg(latest_frame_, this->get_clock());
-            publisher_->publish(*msg);   
-        }
-
     }
 
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr publisher_;
-    rclcpp::TimerBase::SharedPtr timer_;
     cv::VideoCapture &capture_;
     std::thread thread_;
-    std::mutex frame_mutex_;
-    cv::Mat latest_frame_;
     bool is_running_;
 };
 

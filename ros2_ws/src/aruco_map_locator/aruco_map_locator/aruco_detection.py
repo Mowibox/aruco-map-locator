@@ -54,8 +54,6 @@ def detect_aruco(
 def compute_homography(
     corners: Optional[npt.NDArray[np.float32]],
     ids: Optional[npt.NDArray[np.int32]],
-    camera_matrix: npt.NDArray[np.float32],
-    dist_coeffs: npt.NDArray[np.float32],
     marker_positions: dict,
 ) -> Optional[npt.NDArray[np.float64]]:
     """
