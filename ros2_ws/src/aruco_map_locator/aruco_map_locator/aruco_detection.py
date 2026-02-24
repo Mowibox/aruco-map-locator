@@ -131,11 +131,11 @@ def reproject_marker_pos_to_ground(
     h1, h2 = HmtxN[:, 0], HmtxN[:, 1]
 
     r1, r2 = h1, h2
-    r3 = np.cross(r1, r2)  # Orthogonality of rotation matrix
 
     # Normalization
     r1 = r1 / np.linalg.norm(r1)
     r2 = r2 / np.linalg.norm(r2)
+    r3 = np.cross(r1, r2)  # Orthogonality of rotation matrix
     r3 = r3 / np.linalg.norm(r3)  # z-axis direction
 
     pos_cam_robot = pos_cam_marker - (ROBOT_HEIGHT * r3)
@@ -294,6 +294,7 @@ def estimate_robot_pose(
     dist_coeffs: npt.NDArray[np.float32],
     marker_positions: dict,
     Hmtx: npt.NDArray[np.float64],
+    camera_pose: Optional[tuple] = None,
 ) -> dict[int, tuple[float, float, float]]:
     """
     Estimate the robot pose based on ArUco tags.
@@ -304,14 +305,12 @@ def estimate_robot_pose(
     @param dist_coeffs: The distortion coefficients
     @param marker_positions: The marker ids and their real-world positions
     @param Hmtx: The homography matrix
+    @param camera_pose: The camera pose (rvec, tvec) in world frame
     """
     robot_pose: dict[int, tuple[float, float, float]] = {}
 
     if corners is None or ids is None:
         return robot_pose
-
-    camera_pose = compute_camera_pose_from_anchors(camera_matrix, dist_coeffs, corners, ids, marker_positions)
-    x_err, y_err = compute_anchor_error(camera_matrix, dist_coeffs, corners, ids, marker_positions, camera_pose)
 
     for i, marker_id in enumerate(ids.flatten()):
         if marker_id in marker_positions or Hmtx is None:  # Don't process the tags used for mapping
@@ -329,12 +328,8 @@ def estimate_robot_pose(
             pos = pos_cam_to_world(tvec, camera_pose)
             if pos is not None:
                 xp, yp = pos
-
-                x_corr = xp + x_err
-                y_corr = yp + y_err
-
-                x = WEIGHT_HMTX * xh + WEIGHT_PNP * x_corr
-                y = WEIGHT_HMTX * yh + WEIGHT_PNP * y_corr
+                x = WEIGHT_HMTX * xh + WEIGHT_PNP * xp
+                y = WEIGHT_HMTX * yh + WEIGHT_PNP * yp
 
         # Getting yaw orientation with angle-axis method
         Rmtx_cam_marker, _ = cv2.Rodrigues(rvec[0])

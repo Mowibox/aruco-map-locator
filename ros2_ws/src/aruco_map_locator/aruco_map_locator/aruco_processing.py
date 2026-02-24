@@ -32,6 +32,7 @@ class ArucoProcessing(Node):
         self.robot_pose_in_map_publisher = self.create_publisher(Image, "robot_pose_in_map", sensor_qos)
 
         self.Hmtx: Optional[npt.NDArray[np.float64]] = None
+        self.camera_pose: Optional[tuple] = None
 
     def image_callback(self, msg) -> None:
         """Image processing callback function.
@@ -46,11 +47,18 @@ class ArucoProcessing(Node):
             aruco_msg = self.mat_to_image_msg(aruco_frame, msg.header)
             self.aruco_frame_publisher.publish(aruco_msg)
 
-            if self.Hmtx is None and ids is not None and all(x in ids.flatten() for x in MARKER_POSITIONS):
-                self.Hmtx = compute_homography(corners, ids, MARKER_POSITIONS)
+            if ids is not None and all(x in ids.flatten() for x in MARKER_POSITIONS):
+                if self.Hmtx is None:
+                    self.Hmtx = compute_homography(corners, ids, MARKER_POSITIONS)
+                if self.camera_pose is None:
+                    self.camera_pose = compute_camera_pose_from_anchors(
+                        camera_matrix, dist_coeffs, corners, ids, MARKER_POSITIONS
+                    )
 
             if self.Hmtx is not None:
-                robot_pose = estimate_robot_pose(corners, ids, camera_matrix, dist_coeffs, MARKER_POSITIONS, self.Hmtx)
+                robot_pose = estimate_robot_pose(
+                    corners, ids, camera_matrix, dist_coeffs, MARKER_POSITIONS, self.Hmtx, self.camera_pose
+                )
 
                 for marker_id, (x, y, theta_z) in robot_pose.items():
                     pose_msg = Pose2D()
