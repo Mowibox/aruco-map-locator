@@ -35,14 +35,16 @@ Precise localization of its environment and dynamic obstacle detection are cruci
 
 ## Documentation
 
- More details about this project are specified in the [wiki](https://github.com/Mowibox/aruco-map-locator/wiki). A short presentation is also available in the ['docs/'](https://github.com/Mowibox/aruco-map-locator/tree/main/docs) folder _(outdated)_.
+ More details about this project are specified in the [wiki](https://github.com/Mowibox/aruco-map-locator/wiki).
+
+A short presentation is also available in the ['docs/'](https://github.com/Mowibox/aruco-map-locator/tree/main/docs/presentation.pdf) folder _(outdated)_.
 
 ## Contributions
 
 Contributions are always welcome!
 
-* Report Issues: Found a bug or have a feature request? Create a new issue [here.](https://github.com/Mowibox/aruco-map-locator/issues/new/choose)
-* Fix Bugs & Add Features: Find out where you can lend a hand by checking out [existing issues.](https://github.com/Mowibox/aruco-map-locator/issues)
+* **Report Issues:** Found a bug or have a feature request? Create a new issue [here.](https://github.com/Mowibox/aruco-map-locator/issues/new/choose)
+* **Fix Bugs & Add Features:** Find out where you can lend a hand by checking out [existing issues.](https://github.com/Mowibox/aruco-map-locator/issues)
 
 ## References
 
