@@ -20,6 +20,7 @@ import cv2.aruco as aruco
 import numpy as np
 import numpy.typing as npt
 
+from .kalman_filter import KalmanFilter
 from .params import *
 
 
@@ -302,6 +303,7 @@ def estimate_robot_pose(
     marker_positions: dict,
     Hmtx: npt.NDArray[np.float64],
     camera_pose: Optional[tuple] = None,
+    kalman_filters: Optional[dict[int, KalmanFilter]] = None,
 ) -> dict[int, tuple[float, float, float]]:
     """
     Estimate the robot pose based on ArUco tags.
@@ -313,6 +315,7 @@ def estimate_robot_pose(
     @param marker_positions: The marker ids and their real-world positions
     @param Hmtx: The homography matrix
     @param camera_pose: The camera pose (rvec, tvec) in world frame
+    @param kalman_filters: The Kalman filters for each robot
     """
     robot_pose: dict[int, tuple[float, float, float]] = {}
 
@@ -342,6 +345,11 @@ def estimate_robot_pose(
         Rmtx_cam_marker, _ = cv2.Rodrigues(rvec[0])
         theta_z = np.arctan2(Rmtx_cam_marker[1, 0], Rmtx_cam_marker[0, 0])
 
+        if kalman_filters is not None:
+            if marker_id not in kalman_filters:
+                kalman_filters[int(marker_id)] = KalmanFilter()
+            x, y, theta_z = kalman_filters[int(marker_id)].update(x, y, float(theta_z))
+
         print(
             f"Robot n°{marker_id} pose: "
             f"x = {x*M_TO_CM:.2f} cm; "
@@ -359,7 +367,6 @@ def pose_to_img(robot_pose: dict) -> np.ndarray:
 
     @robot_pose: The dictionnary of robot poses
     """
-
     ppm_x = IMAGE_WIDTH / WORLD_SIZE[0]
     ppm_y = IMAGE_HEIGHT / WORLD_SIZE[1]
     px_res = (ppm_x + ppm_y) // 2
@@ -385,7 +392,7 @@ def pose_to_img(robot_pose: dict) -> np.ndarray:
         cv2.circle(matrix, (px, py), int(ROBOT_RADIUS * px_res), color, -1)
 
         # Robot orientation
-        theta_z = theta_z.item()
+        theta_z = theta_z.item() if hasattr(theta_z, "item") else theta_z
         endx = int(px + ROBOT_RADIUS * px_res * np.cos(theta_z))
         endy = int(py + ROBOT_RADIUS * px_res * np.sin(theta_z))
         cv2.line(matrix, (px, py), (endx, endy), neg_color, 10)

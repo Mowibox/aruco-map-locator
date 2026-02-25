@@ -7,6 +7,7 @@ from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy  # type
 from sensor_msgs.msg import Image  # type: ignore
 
 from .aruco_detection import *
+from .kalman_filter import KalmanFilter
 
 
 class ArucoProcessing(Node):
@@ -33,6 +34,7 @@ class ArucoProcessing(Node):
 
         self.Hmtx: Optional[npt.NDArray[np.float64]] = None
         self.camera_pose: Optional[tuple] = None
+        self.kalman_filters: dict[int, KalmanFilter] = {}
 
     def image_callback(self, msg) -> None:
         """Image processing callback function.
@@ -57,7 +59,7 @@ class ArucoProcessing(Node):
 
             if self.Hmtx is not None:
                 robot_pose = estimate_robot_pose(
-                    corners, ids, camera_matrix, dist_coeffs, MARKER_POSITIONS, self.Hmtx, self.camera_pose
+                    corners, ids, camera_matrix, dist_coeffs, MARKER_POSITIONS, self.Hmtx, self.camera_pose, self.kalman_filters
                 )
 
                 for marker_id, (x, y, theta_z) in robot_pose.items():

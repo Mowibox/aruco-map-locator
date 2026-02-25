@@ -33,8 +33,8 @@ MARKER_POSITIONS = {
     23: [0.24, 0.06],
 }
 
-WEIGHT_HMTX = 0.5  # Weight for the homography matrix position estimation
-WEIGHT_PNP = 0.5  # Weight for the PnP posiiton estimation
+WEIGHT_HMTX = 0.75  # Weight for the homography matrix position estimation
+WEIGHT_PNP = 0.25  # Weight for the PnP posiiton estimation
 
 # For visualization purposes
 IMAGE_WIDTH = 600  # Image width (px)
