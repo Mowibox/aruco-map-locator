@@ -36,7 +36,7 @@ MARKER_POSITIONS = {
 WEIGHT_HMTX = 0.75  # Weight for the homography matrix position estimation
 WEIGHT_PNP = 0.25  # Weight for the PnP posiiton estimation
 
-# For visualization purposes
+# For visualization purposes (robot_pose_in_map)
 IMAGE_WIDTH = 600  # Image width (px)
 IMAGE_HEIGHT = 400  # Image height (px)
 
