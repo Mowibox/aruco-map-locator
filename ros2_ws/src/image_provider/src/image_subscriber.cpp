@@ -9,11 +9,11 @@ const std::string package_share_dir = ament_index_cpp::get_package_share_directo
 const std::string CALIBRATION_FILE = package_share_dir + "/config/cam_params.yaml";
 
 bool load_calibration_params(const std::string &filepath, cv::Mat &camera_matrix, cv::Mat &dist_coeffs){
-   /** 
+   /**
     * Loads the camera calibration parameters specified in the provided yaml file
-    *@param filepath: The yaml file path 
+    *@param filepath: The yaml file path
     *@param camera_matrix: The intrinsic matrix
-    *@param dist_coeffs: The distortion coefficientss
+    *@param dist_coeffs: The distortion coefficients
     */
     try{
         YAML::Node config = YAML::LoadFile(filepath);
@@ -55,14 +55,14 @@ class ImageSubscriber : public rclcpp::Node {
             topic, qos, std::bind(&ImageSubscriber::image_callback, this, std::placeholders::_1));
         
         if (!load_calibration_params(CALIBRATION_FILE, camera_matrix_, dist_coeffs_)){
-        return;
+            return;
         }
 
         RCLCPP_INFO(this->get_logger(), "Seeing the topic '%s'", topic.c_str()); 
     }
     private:
     void image_callback(const sensor_msgs::msg::Image::SharedPtr msg){
-       /** 
+       /**
         * Displays the images of the listened topic
         *@param msg: The ROS2 Image msg
         */
@@ -79,7 +79,7 @@ class ImageSubscriber : public rclcpp::Node {
             else {
                 corrected_frame = frame.clone();
             }
-            
+
 
             cv::imshow(topic, corrected_frame);
             cv::waitKey(1);
@@ -98,7 +98,6 @@ class ImageSubscriber : public rclcpp::Node {
 
 int main(int argc, char **argv) {
     rclcpp::init(argc, argv);
-    
     cv::Mat camera_matrix, dist_coeffs;
     auto node = std::make_shared<ImageSubscriber>();
     rclcpp::spin(node);

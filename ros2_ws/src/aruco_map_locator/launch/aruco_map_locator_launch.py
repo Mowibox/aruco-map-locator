@@ -5,12 +5,15 @@ import socket
 from launch import LaunchDescription  # type: ignore[attr-defined]
 from launch_ros.actions import Node
 
+WEB_SERVER_ADDRESS = "8.8.8.8"
+WEB_SERVER_PORT = 80
+
 
 def get_host_ip() -> str:
     """Get the host machine's IP address."""
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        s.connect(("8.8.8.8", 80))
+        s.connect((WEB_SERVER_ADDRESS, WEB_SERVER_PORT))
         ip = s.getsockname()[0]
     finally:
         s.close()

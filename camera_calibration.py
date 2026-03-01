@@ -28,6 +28,11 @@ TIME_DELAY = 3  # Minimal time between two detections (in seconds)
 FRAME_WIDTH = 640 // 2
 FRAME_HEIGHT = 480 // 2
 
+# Server configuration
+SERVER_HOST = "0.0.0.0"
+SERVER_PORT = 5000
+DEBUG_MODE = False
+
 objp = np.zeros((CHESSBOARD_SIZE[0] * CHESSBOARD_SIZE[1], 3), dtype=np.float32)
 objp[:, :2] = np.mgrid[0 : CHESSBOARD_SIZE[0], 0 : CHESSBOARD_SIZE[1]].T.reshape(-1, 2) * SQUARE_SIZE
 
@@ -152,8 +157,26 @@ def camera_calibration(MAX_IMAGES: int) -> Generator[bytes, None, None]:
             imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], camera_matrix, dist_coeffs)
             error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
             mean_error += error
+        delta = abs(ret - mean_error)
 
-        print(f"Re-projection error:\n{mean_error/len(objpoints)}\n")
+        print(f"RMS reprojection error (global): {ret:.4f} px")
+        if ret < 0.3:
+            print("  → Excellent calibration")
+        elif ret < 0.7:
+            print("  → Acceptable calibration")
+        elif ret < 1.0:
+            print("  → Borderline calibration, consider recalibrating")
+        else:
+            print("  → Poor calibration, need recalibration (check detections, sharpness, angles)")
+
+        print(f"\nMean L2 reprojection error (per image): {mean_error:.4f} px")
+
+        if delta > 0.3:
+            print(f"  → High divergence ({delta:.4f} px): likely outlier images, increase MAX_IMAGES or vary angles")
+        elif delta > 0.1:
+            print(f"  → Moderate divergence ({delta:.4f} px): some images of uneven quality")
+        else:
+            print(f"  → Consistent metrics ({delta:.4f} px): homogeneous calibration dataset")
 
         save_calibration(camera_matrix, dist_coeffs)
         print("Press CTRL-C to close the terminal...")
@@ -172,6 +195,6 @@ def video_feed() -> Response:
 
 if __name__ == "__main__":
     try:
-        app.run(host="0.0.0.0", port=5000, debug=True)
+        app.run(host=SERVER_HOST, port=SERVER_PORT, debug=DEBUG_MODE)
     except KeyboardInterrupt:
         exit(0)

@@ -247,54 +247,6 @@ def pos_cam_to_world(tvec: np.ndarray, camera_pose: tuple) -> Optional[tuple[flo
     return xp, yp
 
 
-def compute_anchor_error(
-    camera_matrix: npt.NDArray[np.float32],
-    dist_coeffs: npt.NDArray[np.float32],
-    corners: Optional[npt.NDArray[np.float32]],
-    ids: Optional[npt.NDArray[np.int32]],
-    marker_positions: dict,
-    camera_pose: Optional[tuple[np.ndarray, np.ndarray]],
-) -> tuple[float, float]:
-    """
-    Compute the error between the detected anchor positions and their real-world positions.
-
-    @param camera_matrix: The intrinsic matrix
-    @param dist_coeffs: The distortion coefficients
-    @param corners: The detected marker corners
-    @param ids: The detected marker ids
-    @param marker_positions: The marker ids and their real-world positions
-    @param camera_pose: The camera pose (rvec, tvec) in world frame
-    """
-    if camera_pose is None:
-        return 0.0, 0.0
-
-    if ids is None:
-        return 0.0, 0.0
-
-    errors_x = []
-    errors_y = []
-
-    if ids is not None and corners is not None:
-        for i, marker_id in enumerate(ids.flatten()):
-            if marker_id in marker_positions:
-                _, tvec, _ = aruco.estimatePoseSingleMarkers([corners[i]], MARKER_SIZE, camera_matrix, dist_coeffs)
-
-                pos_meas = pos_cam_to_world(tvec, camera_pose)
-                if pos_meas is None:
-                    continue
-
-                x_mes, y_mes = pos_meas
-                x_real, y_real = marker_positions[marker_id]
-
-                errors_x.append(x_mes - x_real)
-                errors_y.append(y_mes - y_real)
-
-    if len(errors_x) == 0 or len(errors_y) == 0:
-        return 0.0, 0.0
-
-    return np.mean(errors_x), np.mean(errors_y)
-
-
 def estimate_robot_pose(
     corners: Optional[npt.NDArray[np.float32]],
     ids: Optional[npt.NDArray[np.int32]],
@@ -348,7 +300,8 @@ def estimate_robot_pose(
         if kalman_filters is not None:
             if marker_id not in kalman_filters:
                 kalman_filters[int(marker_id)] = KalmanFilter()
-            x, y, theta_z = kalman_filters[int(marker_id)].update(x, y, float(theta_z))
+            xk, yk, theta_zk = kalman_filters[int(marker_id)].update(x, y, float(theta_z))
+            x, y, theta_z = xk, yk, theta_zk
 
         print(
             f"Robot n°{marker_id} pose: "

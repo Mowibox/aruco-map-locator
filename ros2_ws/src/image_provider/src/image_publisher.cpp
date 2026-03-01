@@ -11,7 +11,7 @@ const int FRAME_WIDTH = 320;
 const int FRAME_HEIGHT = 240;
 
 sensor_msgs::msg::Image::SharedPtr mat_to_image_msg(const cv::Mat &frame, const rclcpp::Clock::SharedPtr &clock) {
-   /** 
+   /**
     * Converts a openCV matrix to a ROS 2 Image msg
     *@param frame: The provided frame
     *@param clock: The clock
@@ -46,12 +46,12 @@ class ImagePublisher : public rclcpp::Node{
 
     ~ImagePublisher() {
         is_running_ = false;
-        thread_.join(); 
+        thread_.join();
     }
 
     private:
     void capture_frames() {
-       /** 
+       /**
         * Captures the frames with threading
         */
         cv::Mat frame;
@@ -59,7 +59,7 @@ class ImagePublisher : public rclcpp::Node{
             if (!capture_.read(frame)) {
                 RCLCPP_WARN(this->get_logger(), "Failed to read camera feed.");
                 continue;
-            } 
+            }
 
             auto msg = mat_to_image_msg(frame, this->get_clock());
             publisher_->publish(*msg);
