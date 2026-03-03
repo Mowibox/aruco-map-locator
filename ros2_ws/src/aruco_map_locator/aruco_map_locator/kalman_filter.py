@@ -6,7 +6,9 @@
 @date        2026-02-24
 """
 
+# Imports
 import numpy as np
+from numpy.typing import NDArray
 
 
 class KalmanFilter:
@@ -33,19 +35,19 @@ class KalmanFilter:
         self.initialized = False
 
         # State vector [x, y, theta, v, omega]
-        self.mu = np.zeros((5, 1), dtype=np.float64)
+        self.mu: NDArray[np.float64] = np.zeros((5, 1), dtype=np.float64)
 
         # State covariance
-        self.Sigma = np.diag([1e-3, 1e-3, 1e-1, 1e-2, 1e-2])
+        self.Sigma: NDArray[np.float64] = np.diag([1e-3, 1e-3, 1e-1, 1e-2, 1e-2])
 
         # Process noise
-        self.Sigma_x = np.diag([1e-4, 1e-4, 1e-3, 5e-3, 5e-3])
+        self.Sigma_x: NDArray[np.float64] = np.diag([1e-4, 1e-4, 1e-3, 5e-3, 5e-3])
 
         # Measurement noise
-        self.Sigma_z = np.diag([1e-4, 1e-4, 1e-2])
+        self.Sigma_z: NDArray[np.float64] = np.diag([1e-4, 1e-4, 1e-2])
 
         # Observation matrix
-        self.C = np.array(
+        self.C: NDArray[np.float64] = np.array(
             [
                 [1, 0, 0, 0, 0],
                 [0, 1, 0, 0, 0],
@@ -62,7 +64,7 @@ class KalmanFilter:
         """
         return (angle + np.pi) % (2 * np.pi) - np.pi
 
-    def _f(self, mu: np.ndarray) -> np.ndarray:
+    def _f(self, mu: NDArray[np.float64]) -> NDArray[np.float64]:
         """
         Transition function f(x).
 
@@ -81,7 +83,7 @@ class KalmanFilter:
             dtype=np.float64,
         )
 
-    def _jacobian_A(self, mu: np.ndarray) -> np.ndarray:
+    def _jacobian_A(self, mu: NDArray[np.float64]) -> NDArray[np.float64]:
         """
         Jacobian of f(x) wrt state.
 
