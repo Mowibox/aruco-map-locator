@@ -86,7 +86,7 @@ def save_calibration(camera_matrix: npt.NDArray[np.float64], dist_coeffs: npt.ND
 
     yaml_path = os.path.join(config_dir, "cam_params.yaml")
 
-    calibration_data = {"camera_matrix": camera_matrix.tolist(), "distortion_coefficients": dist_coeffs.tolist()}
+    calibration_data = {"camera_matrix": camera_matrix.tolist(), "distortion_coefficients": dist_coeffs.reshape(1, -1).tolist()}
     with open(yaml_path, "w") as yaml_file:
         yaml.dump(calibration_data, yaml_file, default_flow_style=False)
         print(f"Calibration data has been saved to {yaml_path}.\n")

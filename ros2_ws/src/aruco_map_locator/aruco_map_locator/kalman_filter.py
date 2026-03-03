@@ -1,4 +1,4 @@
-"""Kalman filter implementation for robot pose smoothing.
+"""EKF implementation for differential drive robot pose smoothing.
 
 @file        kalman_filter.py
 @author      Mowibox (Ousmane THIONGANE)
@@ -6,39 +6,53 @@
 @date        2026-02-24
 """
 
-# Imports
-import cv2
 import numpy as np
 
 
 class KalmanFilter:
     """
-    Kalman filter for 2D robot pose tracking.
+    Extended Kalman Filter for differential drive robot pose tracking.
 
-    State vector (5D): [x, y, vx, vy, theta]
-    Measurement vector (3D): [x, y, theta]
+    State vector (5D):  µ = [x, y, theta, v, omega]
+    Measurement vector (3D):  z = [x, y, theta]
+
+    Transition function:
+        x_{t+1} = x_t + v_t * cos(theta_t) * dt
+        y_{t+1} = y_t + v_t * sin(theta_t) * dt
+        θ_{t+1} = θ_t + ω_t * dt
+        v_{t+1} = v_t
+        ω_{t+1} = ω_t
     """
 
     def __init__(self, dt: float = 1 / 30) -> None:
-        """Initialize the Kalman filter.
+        """Initialize the EKF.
 
         @param dt: Time step (in seconds)
         """
-        self.kf = cv2.KalmanFilter(5, 3)
+        self.dt = dt
         self.initialized = False
 
-        # x_t = A * x_{t-1} + w
-        self.kf.transitionMatrix = np.array(
-            [[1, 0, dt, 0, 0], [0, 1, 0, dt, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]], dtype=np.float32
+        # State vector [x, y, theta, v, omega]
+        self.mu = np.zeros((5, 1), dtype=np.float64)
+
+        # State covariance
+        self.Sigma = np.diag([1e-3, 1e-3, 1e-1, 1e-2, 1e-2])
+
+        # Process noise
+        self.Sigma_x = np.diag([1e-4, 1e-4, 1e-3, 5e-3, 5e-3])
+
+        # Measurement noise
+        self.Sigma_z = np.diag([1e-4, 1e-4, 1e-2])
+
+        # Observation matrix
+        self.C = np.array(
+            [
+                [1, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0],
+                [0, 0, 1, 0, 0],
+            ],
+            dtype=np.float64,
         )
-        # z_t = C * x_t
-        self.kf.measurementMatrix = np.array([[1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 0, 0, 1]], dtype=np.float32)
-
-        self.kf.processNoiseCov = np.diag([1e-4, 1e-4, 5e-3, 5e-3, 1e-3]).astype(np.float32)
-
-        self.kf.measurementNoiseCov = np.diag([1e-4, 1e-4, 1e-2]).astype(np.float32)
-
-        self.kf.errorCovPost = np.eye(5, dtype=np.float32) * 1e-2
 
     @staticmethod
     def _wrap_angle(angle: float) -> float:
@@ -48,25 +62,73 @@ class KalmanFilter:
         """
         return (angle + np.pi) % (2 * np.pi) - np.pi
 
+    def _f(self, mu: np.ndarray) -> np.ndarray:
+        """
+        Transition function f(x).
+
+        @param mu: Current state [x, y, theta, v, omega]
+        """
+        x, y, theta, v, omega = mu.flatten()
+        dt = self.dt
+        return np.array(
+            [
+                [x + v * np.cos(theta) * dt],
+                [y + v * np.sin(theta) * dt],
+                [theta + omega * dt],
+                [v],
+                [omega],
+            ],
+            dtype=np.float64,
+        )
+
+    def _jacobian_A(self, mu: np.ndarray) -> np.ndarray:
+        """
+        Jacobian of f(x) wrt state.
+
+        @param mu: Current state [x, y, theta, v, omega]
+        """
+        _, _, theta, v, _ = mu.flatten()
+        dt = self.dt
+        return np.array(
+            [
+                [1, 0, -v * np.sin(theta) * dt, np.cos(theta) * dt, 0],
+                [0, 1, v * np.cos(theta) * dt, np.sin(theta) * dt, 0],
+                [0, 0, 1, 0, dt],
+                [0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 1],
+            ],
+            dtype=np.float64,
+        )
+
     def update(self, x: float, y: float, theta: float) -> tuple[float, float, float]:
-        """Update the Kalman filter with a new measurement.
+        """Update the EKF with a new measurement.
 
         @param x: Measured x position (m)
         @param y: Measured y position (m)
         @param theta: Measured orientation (rad)
         """
         if not self.initialized:
-            self.kf.statePost = np.array([[x], [y], [0.0], [0.0], [theta]], dtype=np.float32)
+            self.mu = np.array([[x], [y], [theta], [0.0], [0.0]], dtype=np.float64)
             self.initialized = True
             return x, y, theta
 
-        self.kf.predict()
+        # Predict
+        A_t = self._jacobian_A(self.mu)
+        self.mu = self._f(self.mu)
+        self.mu[2, 0] = self._wrap_angle(self.mu[2, 0])
+        self.Sigma = A_t @ self.Sigma @ A_t.T + self.Sigma_x
 
-        # Preventing 0/pi discontinuity
-        predicted_theta = float(self.kf.statePre[4])
-        theta_wrapped = float(predicted_theta) + self._wrap_angle(theta - float(predicted_theta))
+        # Update: Conditionning
+        z_t = np.array([[x], [y], [theta]], dtype=np.float64)
 
-        measurement = np.array([[x], [y], [theta_wrapped]], dtype=np.float32)
-        corrected = self.kf.correct(measurement)
+        mu_z = self.C @ self.mu
+        innovation = z_t - mu_z
+        innovation[2, 0] = self._wrap_angle(float(innovation[2, 0]))
 
-        return float(corrected[0]), float(corrected[1]), self._wrap_angle(float(corrected[4]))
+        S_t = self.Sigma_z + self.C @ self.Sigma @ self.C.T
+        K_t = self.Sigma @ self.C.T @ np.linalg.inv(S_t)
+        self.mu = self.mu + K_t @ innovation
+        self.mu[2, 0] = self._wrap_angle(self.mu[2, 0])
+        self.Sigma = (np.eye(5) - K_t @ self.C) @ self.Sigma
+
+        return float(self.mu[0]), float(self.mu[1]), self._wrap_angle(float(self.mu[2]))

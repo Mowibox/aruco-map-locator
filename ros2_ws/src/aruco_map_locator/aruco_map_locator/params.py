@@ -17,7 +17,7 @@ from ament_index_python.packages import get_package_share_directory  # type: ign
 package_share_dir = get_package_share_directory("image_provider")
 CALIBRATION_FILE = os.path.join(package_share_dir, "config", "cam_params.yaml")
 
-M_TO_CM = 100  # Meters to centimeters conversion
+M_TO_CM = 100  # Meters to centimeters conversion - for visualization purposes
 
 ROBOT_RADIUS = 0.01  # The robot radius for vizualization (m)
 ROBOT_HEIGHT = 0.035  # The robot height (m)
@@ -50,7 +50,7 @@ def load_calibration_params(filepath: str) -> tuple[npt.NDArray[np.float32], npt
         data = yaml.safe_load(file)
 
     camera_matrix = np.array(data["camera_matrix"])
-    dist_coeffs = np.array(data["distortion_coefficients"][0])
+    dist_coeffs = np.array(data["distortion_coefficients"]).flatten().reshape(1, -1)
 
     return camera_matrix, dist_coeffs
 

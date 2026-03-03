@@ -66,8 +66,8 @@ class ArucoProcessing(Node):
                     pose_msg = Pose2D()
                     pose_msg.marker_id = int(marker_id)
 
-                    pose_msg.x = float(x * M_TO_CM)
-                    pose_msg.y = float(y * M_TO_CM)
+                    pose_msg.x = float(x)
+                    pose_msg.y = float(y)
                     pose_msg.theta = float(theta_z)
 
                     self.robot_pose_publisher.publish(pose_msg)
