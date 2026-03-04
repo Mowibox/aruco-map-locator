@@ -22,7 +22,7 @@ M_TO_CM = 100  # Meters to centimeters conversion - for visualization purposes
 ROBOT_RADIUS = 0.01  # The robot radius for vizualization (m)
 ROBOT_HEIGHT = 0.035  # The robot height (m)
 
-MARKER_SIZE = 0.02  # In meters (2 cm)
+MARKER_SIZE = 0.02  # Marker size (m)
 WORLD_SIZE = [0.30, 0.20]  # World dimensions (w, h), (m)
 
 # Aruco real-world coordinates ID:[x, y] (m)
