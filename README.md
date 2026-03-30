@@ -34,7 +34,7 @@ Precise localization of its environment and dynamic obstacle detection are cruci
 | |
 | :---: |
 | <img src="https://github.com/Mowibox.png" width="100"> |
-| [**Ousmane THIONGANE**](https://mowibox.github.io) |
+| [@Mowibox](https://mowibox.github.io)<br>Ousmane THIONGANE |
 
 ## Documentation
 
